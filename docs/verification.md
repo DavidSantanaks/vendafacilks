@@ -14,12 +14,14 @@ Data: 18/10/2026. Ambiente: Windows, JDK Temurin 25.0.4.1, Maven Wrapper/Maven 3
 - Viewports: 1440 × 1050 e 390 × 844, com inspeção das capturas desktop/mobile e sem overflow horizontal no dashboard mobile.
 - Cookie real conferido: HttpOnly, SameSite=Lax e domínio `boa-praca.localhost`, sem compartilhamento com `vila-verde.localhost`.
 - JAR final iniciado novamente; cadastro, desativação e reativação de filial conferidos também pelos formulários reais no Chrome.
-- Git local inicializado na branch `main`, sem commit automático.
+- Git local na branch `main`, com histórico local autorizado pelo usuário e autor configurado somente neste repositório.
 - Validação posterior com Docker Desktop ativo: `scripts/docker-up.ps1` construiu a imagem e iniciou os containers; PostgreSQL saudável, Flyway aplicado, `/actuator/health` com HTTP 200/UP e login da Boa Praça com HTTP 200. O iniciador corrige o PATH do processo para localizar os auxiliares de credenciais do Docker Desktop.
 - Recuperação e administração: 45 testes executados com PostgreSQL via Testcontainers, incluindo token com hash/contexto, expiração, uso único, substituição por novo pedido, recusa de conta bloqueada, invalidação de sessões e limites da gestão de acessos.
 - Chrome/Mailpit: entrega SMTP local após commit, pedido pelo administrador e pelo próprio usuário, redefinição e confirmação de senha, mensagem de conclusão, token consumido recusado e senha nova funcionando. Recuperação do portal SaaS também entregou link para o subdomínio correto, sem redefinir a senha existente do administrador da plataforma.
 - Cards SaaS: abertura do portal em outra aba, filtro de usuários por empresa e atribuição de perfil pela interface conferidos. Ajuste de layout mobile confirmado em 390 × 844: página sem transbordamento horizontal, com rolagem restrita à tabela.
 - Três contas fictícias adicionais usadas no ensaio de navegador foram bloqueadas pela própria gestão SaaS ao final, mantendo auditoria e dados de teste.
+- Tema roxo/off-white conferido no Chrome em login, recuperação, dashboard, equipe e gestão SaaS, com capturas desktop/mobile, cores calculadas, foco de teclado e ausência de transbordamento da página no viewport 390 × 844. ESLint, Prettier e build Docker aprovados para a alteração visual.
+- Padrão de commits: oito testes do validador aprovados. Hook `commit-msg` ativo no repositório e rejeição real conferida para título acima de 50 caracteres e corpo sem linha em branco. Autor local: David Santana.
 
 ## Limites desta verificação
 
