@@ -133,6 +133,8 @@ Para SMTP real, configure `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSW
 
 Produção exige domínio controlado, HTTPS, banco sem dados fictícios e proxy confiável. Há um [Compose de referência](docker-compose.production.yml) e um [guia de operação](docs/runbooks/local-and-production.md). Esses arquivos não representam homologação de produção. A configuração fiscal e o piloto real continuam sujeitos aos critérios do SDD.
 
+Para instalar em um servidor, consulte o [guia completo do sistema e da infraestrutura no Ubuntu Server 26.04 LTS](GUIA-SISTEMA-UBUNTU-SERVER-26.md), com DNS, HTTPS, SMTP, primeiro administrador, backup, restauração e atualização.
+
 ## Estrutura e decisões
 
 O código está organizado por funcionalidade: `tenant`, `identity`, `store`, `administration` e `shared`. Controllers chamam serviços; o acesso a dados fica nos serviços/repositórios. Os módulos comerciais serão adicionados nas entregas correspondentes, evitando classes vazias que aparentem funcionalidades concluídas.
