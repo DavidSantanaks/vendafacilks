@@ -1,0 +1,13 @@
+/target/
+/.tools/
+/.local/
+.env
+.env.*
+!.env.example
+*.log
+*.iml
+.idea/
+.vscode/
+tooling/node_modules/
+playwright-report/
+test-results/

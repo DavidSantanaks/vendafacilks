@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: vendafacil
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/vendafacil}
+    username: ${DB_USER:vendafacil}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 10000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  thymeleaf:
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
+      mail.smtp.starttls.required: ${MAIL_STARTTLS:false}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+server:
+  port: ${APP_PORT:8080}
+  forward-headers-strategy: none
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        name: VFSESSION
+        http-only: true
+        secure: true
+        same-site: lax
+  tomcat:
+    max-http-form-post-size: 64KB
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: "OFF"
+  structured:
+    format:
+      console: logstash
+app:
+  mail-from: ${MAIL_FROM:acesso@vendafacil.example}
+  public-port: ${PUBLIC_PORT:}
+  base-domain: ${APP_BASE_DOMAIN:vendafacil.example}
+  demo-enabled: false
+  demo-password: ${DEMO_PASSWORD:}
+  require-https: true
+  bootstrap-admin:
+    enabled: ${APP_BOOTSTRAP_ADMIN_ENABLED:false}

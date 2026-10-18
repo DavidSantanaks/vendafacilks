@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <details th:fragment="help(label, text)" class="vf-help">
+      <summary th:attr="aria-label='Ajuda sobre ' + ${label}">
+        <i class="bi bi-question-circle" aria-hidden="true"></i>
+      </summary>
+      <span th:text="${text}">Informação de ajuda.</span>
+    </details>
+  </body>
+</html>

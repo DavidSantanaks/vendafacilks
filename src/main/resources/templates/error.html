@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Página indisponível')}"></head>
+  <body class="vf-error-page">
+    <main id="conteudo" class="vf-card vf-error-card">
+      <span class="vf-error-icon"><i class="bi bi-cone-striped" aria-hidden="true"></i></span>
+      <span class="vf-eyebrow" th:text="${status}">Erro</span>
+      <h1>Não foi possível abrir esta página.</h1>
+      <p>
+        Confira o endereço e suas permissões. Se o problema continuar, informe a referência ao
+        administrador.
+      </p>
+      <p class="vf-small vf-muted">
+        Referência:
+        <code th:text="${correlationId ?: 'Consulte X-Correlation-ID na resposta'}">
+          indisponível
+        </code>
+      </p>
+      <a class="btn btn-primary" th:href="@{/}">Voltar ao início</a>
+    </main>
+  </body>
+</html>

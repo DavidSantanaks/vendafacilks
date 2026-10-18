@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Gerenciar filiais')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Configurações / Filiais')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">CADA UNIDADE, SEU ESPAÇO</span>
+            <h1>Gerenciar filiais</h1>
+            <p>Mantenha as informações da sua operação em dia.</p>
+          </div>
+          <a class="btn btn-outline-primary" th:href="@{/api/v1/filiais/exportacao}">
+            <i class="bi bi-download" aria-hidden="true"></i>
+            Exportar filiais
+          </a>
+        </div>
+        <div class="vf-management-grid">
+          <section class="vf-card vf-form-card">
+            <h2>Nova filial</h2>
+            <p class="vf-muted">Seu perfil atual será associado à nova unidade.</p>
+            <form th:action="@{/configuracoes/filiais}" th:object="${storeForm}" method="post">
+              <div class="mb-3">
+                <label class="form-label" for="name">Nome da filial</label>
+                <input
+                  class="form-control"
+                  id="name"
+                  th:field="*{name}"
+                  placeholder="Ex.: Filial · Cambuí"
+                  maxlength="120"
+                  required
+                />
+                <small class="vf-field-error" th:errors="*{name}"></small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="city">Cidade</label>
+                <input class="form-control" id="city" th:field="*{city}" maxlength="100" required />
+                <small class="vf-field-error" th:errors="*{city}"></small>
+              </div>
+              <div class="mb-4">
+                <div class="vf-label-row">
+                  <label class="form-label" for="state">UF</label>
+                  <details
+                    th:replace="~{fragments/help :: help('UF', 'Use a sigla do estado da filial. Exemplo: SP para São Paulo. A primeira integração fiscal será homologada em SP.')}"
+                  ></details>
+                </div>
+                <input
+                  class="form-control"
+                  id="state"
+                  th:field="*{state}"
+                  maxlength="2"
+                  pattern="[A-Z]{2}"
+                  required
+                />
+                <small class="vf-field-error" th:errors="*{state}"></small>
+              </div>
+              <button class="btn btn-primary w-100" data-submit>
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                Criar filial
+              </button>
+            </form>
+          </section>
+          <section>
+            <div class="vf-section-heading"><h2>Filiais autorizadas</h2></div>
+            <article class="vf-card vf-edit-store" th:each="store : ${stores}">
+              <div class="vf-section-heading">
+                <h3 th:text="${store.name}">Filial</h3>
+                <span class="vf-badge" th:text="${store.active ? 'Ativa' : 'Inativa'}">Ativa</span>
+              </div>
+              <form
+                th:action="@{/configuracoes/filiais/{id}(id=${store.id})}"
+                method="post"
+                data-confirm="Confirmar a alteração desta filial? Ao desativar, a operação comercial nesta unidade ficará indisponível."
+              >
+                <label class="form-label" th:for="${'name-' + store.id}">Nome</label>
+                <input
+                  class="form-control mb-3"
+                  th:id="${'name-' + store.id}"
+                  name="name"
+                  th:value="${store.name}"
+                  maxlength="120"
+                  required
+                />
+                <div class="row g-3 mb-3">
+                  <div class="col-8">
+                    <label class="form-label" th:for="${'city-' + store.id}">Cidade</label>
+                    <input
+                      class="form-control"
+                      th:id="${'city-' + store.id}"
+                      name="city"
+                      th:value="${store.city}"
+                      maxlength="100"
+                      required
+                    />
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label" th:for="${'state-' + store.id}">UF</label>
+                    <input
+                      class="form-control"
+                      th:id="${'state-' + store.id}"
+                      name="state"
+                      th:value="${store.state}"
+                      maxlength="2"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="form-check-label">
+                    <input
+                      type="checkbox"
+                      class="form-check-input me-2"
+                      name="active"
+                      value="true"
+                      th:checked="${store.active}"
+                    />
+                    Filial ativa
+                  </label>
+                  <button class="btn btn-outline-primary" data-submit>Salvar alterações</button>
+                </div>
+              </form>
+            </article>
+          </section>
+        </div>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.woff binary
+*.woff2 binary
+# Mantém a marcação Markdown do SDD original fornecido pelo usuário.
+SDD-VendaFacilKs.md whitespace=-blank-at-eol,-blank-at-eof

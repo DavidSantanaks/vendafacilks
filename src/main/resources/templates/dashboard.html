@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Visão geral')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Visão geral')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">TUDO PRONTO PARA O PRÓXIMO PASSO</span>
+            <h1>
+              Olá,
+              <span th:text="${#strings.arraySplit(currentUser.name, ' ')[0]}">Ana</span>
+              <span class="vf-wave" aria-hidden="true">☀</span>
+            </h1>
+            <p>Que bom ter você por aqui. Este é o espaço da sua loja.</p>
+          </div>
+          <span class="vf-date">
+            <i class="bi bi-calendar3" aria-hidden="true"></i>
+            <time data-current-date>Hoje</time>
+          </span>
+        </div>
+        <section class="vf-welcome-banner">
+          <div>
+            <span class="vf-banner-label">
+              <span class="vf-online-dot"></span>
+              SUA FILIAL ESTÁ CONECTADA
+            </span>
+            <h2 th:text="${activeStore.name}">Matriz · Centro</h2>
+            <p>
+              <span th:text="${tenant.name}">Sua empresa</span>
+              <span class="vf-banner-divider">/</span>
+              <span th:text="${activeStore.city + ', ' + activeStore.state}">Campinas, SP</span>
+            </p>
+            <a class="btn vf-btn-white" th:href="@{/filiais}">
+              Trocar filial
+              <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+            </a>
+          </div>
+          <div class="vf-banner-art" aria-hidden="true">
+            <i class="bi bi-shop"></i>
+            <span><i class="bi bi-check-lg"></i></span>
+          </div>
+        </section>
+        <section class="vf-stat-grid" aria-label="Resumo de acesso">
+          <article class="vf-card vf-stat-card">
+            <span class="vf-stat-icon"><i class="bi bi-buildings" aria-hidden="true"></i></span>
+            <span>Filiais disponíveis</span>
+            <strong th:text="${storeCount}">2</strong>
+            <small>Autorizadas para sua conta</small>
+          </article>
+          <article class="vf-card vf-stat-card">
+            <span class="vf-stat-icon vf-icon-blue">
+              <i class="bi bi-person-badge" aria-hidden="true"></i>
+            </span>
+            <span>Seu perfil nesta filial</span>
+            <strong class="vf-stat-text" th:text="${roleNames}">Administrador</strong>
+            <small>Permissões específicas por filial</small>
+          </article>
+          <article class="vf-card vf-stat-card">
+            <span class="vf-stat-icon vf-icon-purple">
+              <i class="bi bi-shield-check" aria-hidden="true"></i>
+            </span>
+            <span>Permissões de acesso</span>
+            <strong th:text="${permissionCount}">23</strong>
+            <small>Validadas a cada operação</small>
+          </article>
+        </section>
+        <div class="vf-dashboard-columns">
+          <section>
+            <div class="vf-section-heading">
+              <h2>Seu dia, mais simples</h2>
+              <span class="vf-muted vf-small">Acessos rápidos</span>
+            </div>
+            <div class="vf-shortcuts">
+              <a class="vf-card vf-shortcut" th:href="@{/filiais}">
+                <span class="vf-shortcut-icon"><i class="bi bi-shop" aria-hidden="true"></i></span>
+                <div>
+                  <h3>Minhas filiais</h3>
+                  <p>Escolha onde trabalhar.</p>
+                </div>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </a>
+              <a class="vf-card vf-shortcut" th:if="${canManage}" th:href="@{/usuarios}">
+                <span class="vf-shortcut-icon vf-icon-blue">
+                  <i class="bi bi-people" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <h3>Equipe e acessos</h3>
+                  <p>As pessoas certas em cada filial.</p>
+                </div>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </a>
+              <a
+                class="vf-card vf-shortcut"
+                th:if="${canManage}"
+                th:href="@{/configuracoes/filiais}"
+              >
+                <span class="vf-shortcut-icon vf-icon-purple">
+                  <i class="bi bi-sliders2" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <h3>Organizar filiais</h3>
+                  <p>Cuide das informações da loja.</p>
+                </div>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </a>
+            </div>
+            <div class="vf-section-heading vf-mt-section">
+              <h2>Atividade recente</h2>
+              <span class="vf-muted vf-small">Nesta filial</span>
+            </div>
+            <div class="vf-card vf-activity">
+              <div class="vf-activity-row" th:each="event : ${events}">
+                <span class="vf-activity-icon">
+                  <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <strong
+                    th:text="${event.action == 'STORE_SELECTED' ? 'Filial selecionada para trabalhar' : (event.action == 'USER_CREATED' ? 'Novo acesso de usuário cadastrado' : 'Informações da filial atualizadas')}"
+                  >
+                    Acesso registrado
+                  </strong>
+                  <small>Operação registrada com segurança</small>
+                </div>
+                <time
+                  th:attr="datetime=${event.createdAt}"
+                  th:text="${#temporals.format(event.createdAt.atZone(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM HH:mm')}"
+                >
+                  Hoje
+                </time>
+              </div>
+              <div class="vf-empty vf-empty-small" th:if="${#lists.isEmpty(events)}">
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
+                <p>
+                  Seu espaço está pronto.
+                  <br />
+                  As atividades disponíveis ao seu perfil aparecerão aqui.
+                </p>
+              </div>
+            </div>
+          </section>
+          <aside class="vf-card vf-next-steps">
+            <span class="vf-step-illustration">
+              <i class="bi bi-signpost-split" aria-hidden="true"></i>
+            </span>
+            <span class="vf-eyebrow">COMECE POR AQUI</span>
+            <h2>
+              Uma base para
+              <br />
+              crescer com você.
+            </h2>
+            <p>Organize sua empresa antes de começar a operação comercial.</p>
+            <ol>
+              <li>
+                <span class="vf-step-check"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+                <div>
+                  <strong>Acesse sua empresa</strong>
+                  <small>Ambiente exclusivo e protegido</small>
+                </div>
+              </li>
+              <li>
+                <span class="vf-step-check"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+                <div>
+                  <strong>Escolha sua filial</strong>
+                  <small th:text="${activeStore.name}">Filial selecionada</small>
+                </div>
+              </li>
+              <li>
+                <span class="vf-step-number">3</span>
+                <div>
+                  <strong>Organize sua equipe</strong>
+                  <small>Confira os perfis e acessos</small>
+                </div>
+              </li>
+            </ol>
+            <a th:if="${canManage}" class="btn btn-outline-primary w-100" th:href="@{/usuarios}">
+              Ver minha equipe
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+            <div class="vf-stage-note">
+              <i class="bi bi-info-circle" aria-hidden="true"></i>
+              Catálogo, vendas, caixa e fiscal fazem parte dos próximos incrementos.
+            </div>
+          </aside>
+        </div>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

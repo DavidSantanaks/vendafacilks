@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Escolher filial')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Minhas filiais')}"></header>
+      <main class="vf-content" id="conteudo">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">SEU PONTO DE PARTIDA</span>
+            <h1>Onde vamos trabalhar?</h1>
+            <p>Escolha uma filial para entrar no seu espaço.</p>
+          </div>
+          <span class="vf-status-chip">
+            <span class="vf-online-dot"></span>
+            Acesso verificado
+          </span>
+        </div>
+        <div class="vf-info-strip">
+          <i class="bi bi-shield-check" aria-hidden="true"></i>
+          <p>
+            Você está em
+            <strong th:text="${tenant.name}">sua empresa</strong>
+            . Aqui aparecem apenas as filiais autorizadas para sua conta.
+          </p>
+        </div>
+        <div class="vf-section-heading">
+          <h2>
+            Suas filiais
+            <span class="vf-count" th:text="${#lists.size(stores)}">0</span>
+          </h2>
+          <label class="vf-search">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input
+              type="search"
+              data-search="store-list"
+              aria-label="Buscar filial"
+              placeholder="Buscar filial…"
+            />
+          </label>
+        </div>
+        <div class="vf-store-grid" id="store-list">
+          <article
+            class="vf-card vf-store-card"
+            th:each="store : ${stores}"
+            data-search-item
+            th:attr="data-search-text=${store.name + ' ' + store.city}"
+          >
+            <div class="vf-store-card-top">
+              <span class="vf-store-symbol"><i class="bi bi-shop" aria-hidden="true"></i></span>
+              <span class="vf-badge">
+                <span class="vf-online-dot"></span>
+                Ativa
+              </span>
+            </div>
+            <h2 th:text="${store.name}">Matriz</h2>
+            <p>
+              <i class="bi bi-geo-alt" aria-hidden="true"></i>
+              <span th:text="${store.city + ', ' + store.state}">Cidade, SP</span>
+            </p>
+            <div class="vf-store-card-bottom">
+              <span>
+                <i class="bi bi-person-check" aria-hidden="true"></i>
+                Acesso autorizado
+              </span>
+              <form th:action="@{/filiais/ativa}" method="post">
+                <input type="hidden" name="storeId" th:value="${store.id}" />
+                <button class="btn btn-primary" data-submit>
+                  Entrar
+                  <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </button>
+              </form>
+            </div>
+          </article>
+        </div>
+        <div th:if="${#lists.isEmpty(stores)}" class="vf-empty vf-card">
+          <i class="bi bi-shop-window" aria-hidden="true"></i>
+          <h2>Nenhuma filial disponível</h2>
+          <p>Peça ao administrador que confira seu vínculo e as filiais autorizadas.</p>
+        </div>
+        <p class="vf-filter-empty" data-search-empty="store-list" hidden>
+          Nenhuma filial corresponde à busca.
+        </p>
+        <div class="vf-bottom-tip">
+          <i class="bi bi-lightbulb" aria-hidden="true"></i>
+          <p>
+            <strong>Você pode trocar depois.</strong>
+            A filial ativa aparece no topo de todas as páginas.
+          </p>
+        </div>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

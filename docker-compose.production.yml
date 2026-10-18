@@ -1,0 +1,71 @@
+# Usar isoladamente: docker compose -f docker-compose.production.yml up -d --build
+services:
+  db:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-vendafacil}
+      POSTGRES_USER: ${DB_USER:-vendafacil}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina uma senha exclusiva}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks:
+      - backend
+    restart: unless-stopped
+  app:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-vendafacil}
+      DB_USER: ${DB_USER:-vendafacil}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina uma senha exclusiva}
+      APP_BASE_DOMAIN: ${APP_BASE_DOMAIN:?Configure um domínio controlado}
+      APP_TRUSTED_PROXY_REGEX: '172\.28\.56\.10'
+      APP_BOOTSTRAP_ADMIN_ENABLED: ${APP_BOOTSTRAP_ADMIN_ENABLED:-false}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      PUBLIC_PORT: ${PUBLIC_PORT:-}
+      MAIL_HOST: ${MAIL_HOST:?Configure o SMTP de recuperação de acesso}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:?Configure o remetente verificado}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: unless-stopped
+  proxy:
+    image: caddy:2.10.2-alpine
+    environment:
+      APP_BASE_DOMAIN: ${APP_BASE_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      backend:
+        ipv4_address: 172.28.56.10
+    restart: unless-stopped
+networks:
+  backend:
+    ipam:
+      config:
+        - subnet: 172.28.56.0/24
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

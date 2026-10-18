@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:fragment="head(title)">
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="no-referrer" />
+    <meta th:if="${_csrf != null}" name="csrf-token" th:content="${_csrf.token}" />
+    <meta th:if="${_csrf != null}" name="csrf-header" th:content="${_csrf.headerName}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="vendaFacil — gestão simples, negócio em movimento." />
+    <title th:text="${title} + ' | vendaFacil'">vendaFacil</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}" />
+    <link rel="stylesheet" th:href="@{/vendor/bootstrap/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/vendor/icons/bootstrap-icons.min.css}" />
+    <link rel="stylesheet" th:href="@{/css/tokens.css}" />
+    <link rel="stylesheet" th:href="@{/css/app.css}" />
+    <link rel="stylesheet" th:href="@{/css/print.css}" media="print" />
+    <script type="module" th:src="@{/js/shared/app.js}"></script>
+  </head>
+  <body>
+    <a th:fragment="skip" class="vf-skip" href="#conteudo">Pular para o conteúdo</a>
+    <aside
+      th:fragment="sidebar"
+      class="vf-sidebar"
+      id="menu-principal"
+      aria-label="Navegação principal"
+    >
+      <a class="vf-brand" th:href="@{/}">
+        <span class="vf-brand-icon"><i class="bi bi-basket2" aria-hidden="true"></i></span>
+        <span>
+          venda
+          <span class="vf-brand-light">Facil</span>
+          <small>SEU NEGÓCIO EM MOVIMENTO</small>
+        </span>
+      </a>
+      <div class="vf-workspace">
+        <span class="vf-avatar vf-avatar-store"><i class="bi bi-shop" aria-hidden="true"></i></span>
+        <div>
+          <strong th:text="${tenant.name}">Sua empresa</strong>
+          <small
+            th:text="${tenant.platform ? 'Administração da plataforma' : tenant.slug + '.' + baseDomain}"
+          >
+            empresa.localhost
+          </small>
+        </div>
+        <i class="bi bi-shield-check" aria-label="Ambiente da empresa"></i>
+      </div>
+      <div class="vf-nav-label">PRINCIPAL</div>
+      <nav class="vf-nav" th:if="${!tenant.platform}">
+        <a
+          th:href="@{/}"
+          th:classappend="${currentPath == '/' ? 'is-active' : ''}"
+          th:attr="aria-current=${currentPath == '/' ? 'page' : null}"
+        >
+          <i class="bi bi-grid-1x2" aria-hidden="true"></i>
+          Visão geral
+        </a>
+        <a th:href="@{/filiais}" th:classappend="${currentPath == '/filiais' ? 'is-active' : ''}">
+          <i class="bi bi-shop" aria-hidden="true"></i>
+          Minhas filiais
+          <span class="vf-nav-dot"></span>
+        </a>
+        <a
+          th:if="${canManage}"
+          th:href="@{/usuarios}"
+          th:classappend="${currentPath == '/usuarios' ? 'is-active' : ''}"
+        >
+          <i class="bi bi-people" aria-hidden="true"></i>
+          Equipe e acessos
+        </a>
+        <a
+          th:if="${canManage}"
+          th:href="@{/configuracoes}"
+          th:classappend="${#strings.startsWith(currentPath, '/configuracoes') ? 'is-active' : ''}"
+        >
+          <i class="bi bi-sliders2" aria-hidden="true"></i>
+          Configurações
+        </a>
+      </nav>
+      <nav class="vf-nav" th:if="${tenant.platform}">
+        <a
+          th:classappend="${#strings.startsWith(currentPath, '/admin/empresas') ? 'is-active' : ''}"
+          th:href="@{/admin/empresas}"
+        >
+          <i class="bi bi-buildings" aria-hidden="true"></i>
+          Empresas
+        </a>
+        <a
+          th:classappend="${#strings.startsWith(currentPath, '/admin/usuarios') ? 'is-active' : ''}"
+          th:href="@{/admin/usuarios}"
+        >
+          <i class="bi bi-people" aria-hidden="true"></i>
+          Usuários
+        </a>
+      </nav>
+      <div class="vf-sidebar-bottom">
+        <div class="vf-help-card">
+          <i class="bi bi-lightbulb" aria-hidden="true"></i>
+          <strong>Um passo de cada vez</strong>
+          <p>Comece escolhendo a filial em que você vai trabalhar.</p>
+          <a th:if="${!tenant.platform}" th:href="@{/filiais}">
+            Escolher filial
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+        <div class="vf-sidebar-footer">
+          <span class="vf-online-dot"></span>
+          Ambiente
+          <span th:text="${demoEnabled ? 'de demonstração' : 'conectado'}">conectado</span>
+          <small>v0.1</small>
+        </div>
+      </div>
+    </aside>
+    <header th:fragment="topbar(section)" class="vf-topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button
+          class="vf-icon-button vf-menu-toggle"
+          type="button"
+          aria-controls="menu-principal"
+          aria-expanded="false"
+          aria-label="Abrir menu"
+        >
+          <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+        <div class="vf-breadcrumb">
+          Seu espaço
+          <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          <strong th:text="${section}">Visão geral</strong>
+        </div>
+      </div>
+      <div class="vf-topbar-actions">
+        <a th:if="${activeStore != null}" class="vf-store-switch" th:href="@{/filiais}">
+          <i class="bi bi-geo-alt" aria-hidden="true"></i>
+          <span th:text="${activeStore.name}">Filial</span>
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </a>
+        <div class="vf-user-chip" th:if="${currentUser != null}">
+          <span class="vf-avatar" th:text="${#strings.substring(currentUser.name, 0, 1)}">A</span>
+          <span class="vf-user-name" th:text="${currentUser.name}">Usuário</span>
+        </div>
+        <form th:action="@{/logout}" method="post">
+          <button class="vf-icon-button" title="Sair da conta" aria-label="Sair da conta">
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+          </button>
+        </form>
+      </div>
+    </header>
+    <div th:fragment="alerts">
+      <div class="alert alert-success vf-alert" role="status" th:if="${success != null}">
+        <i class="bi bi-check-circle" aria-hidden="true"></i>
+        <span th:text="${success}">Concluído.</span>
+      </div>
+    </div>
+    <footer th:fragment="footer" class="vf-page-footer">
+      <span>Feito para simplificar o seu dia.</span>
+      <span>
+        vendaFacil
+        <span class="vf-footer-dot">·</span>
+        <span
+          th:text="${demoEnabled ? 'Demonstração com dados fictícios' : 'Gestão com segurança'}"
+        >
+          Gestão com segurança
+        </span>
+      </span>
+    </footer>
+  </body>
+</html>

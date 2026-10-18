@@ -1,0 +1,12 @@
+spring:
+  thymeleaf:
+    cache: true
+server:
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      internal-proxies: ${APP_TRUSTED_PROXY_REGEX}
+      protocol-header: X-Forwarded-Proto
+app:
+  demo-enabled: false
+  require-https: true

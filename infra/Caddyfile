@@ -1,0 +1,11 @@
+# Substitua APP_BASE_DOMAIN por um domínio sob seu controle.
+# Cada novo tenant precisa de um host aprovado neste arquivo ou de uma estratégia
+# wildcard com DNS challenge configurada separadamente no Caddy.
+admin.{$APP_BASE_DOMAIN}, boa-praca.{$APP_BASE_DOMAIN}, vila-verde.{$APP_BASE_DOMAIN} {
+  reverse_proxy app:8080 {
+    header_up Host {host}
+    header_up -Forwarded
+    header_up -X-Forwarded-Host
+    header_up X-Forwarded-Proto https
+  }
+}

@@ -1,0 +1,2 @@
+#!/bin/sh
+exec node tooling/validate-commit.mjs "$1"

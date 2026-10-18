@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Equipe e acessos')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Equipe e acessos')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">PESSOAS QUE FAZEM ACONTECER</span>
+            <h1>Equipe e acessos</h1>
+            <p>As pessoas certas, com as permissões de que precisam.</p>
+          </div>
+          <span class="vf-status-chip">
+            <i class="bi bi-shield-check" aria-hidden="true"></i>
+            Acesso por filial
+          </span>
+        </div>
+        <div class="vf-info-strip">
+          <i class="bi bi-geo-alt" aria-hidden="true"></i>
+          <p>
+            Os acessos desta página pertencem à filial
+            <strong th:text="${activeStore.name}">ativa</strong>
+            . Novos usuários terão acesso somente a ela.
+          </p>
+        </div>
+        <div class="vf-management-grid">
+          <section class="vf-card vf-form-card">
+            <h2>Adicionar à equipe</h2>
+            <p class="vf-muted">Cadastre uma nova conta para esta filial.</p>
+            <form th:action="@{/usuarios}" th:object="${userForm}" method="post">
+              <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger" role="alert">
+                <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="name">Nome completo</label>
+                <input class="form-control" id="name" th:field="*{name}" maxlength="120" required />
+                <small class="vf-field-error" th:errors="*{name}"></small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="email">E-mail</label>
+                <input
+                  class="form-control"
+                  id="email"
+                  type="email"
+                  th:field="*{email}"
+                  maxlength="254"
+                  required
+                />
+                <small class="vf-field-error" th:errors="*{email}"></small>
+              </div>
+              <div class="mb-3">
+                <div class="vf-label-row">
+                  <label class="form-label" for="password">Senha inicial</label>
+                  <details
+                    th:replace="~{fragments/help :: help('senha inicial', 'Use entre 12 e 64 caracteres. Entregue a senha à pessoa por um canal seguro. Não reutilize sua própria senha.')}"
+                  ></details>
+                </div>
+                <input
+                  class="form-control"
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="12"
+                  maxlength="64"
+                  required
+                />
+                <small class="vf-field-error" th:errors="*{password}"></small>
+              </div>
+              <div class="mb-4">
+                <div class="vf-label-row">
+                  <label class="form-label" for="roleId">Perfil de acesso</label>
+                  <details
+                    th:replace="~{fragments/help :: help('perfil', 'O perfil define o que a pessoa pode fazer nesta filial. Você só pode conceder permissões e limites que também possui.')}"
+                  ></details>
+                </div>
+                <select class="form-select" id="roleId" th:field="*{roleId}" required>
+                  <option value="">Selecione um perfil</option>
+                  <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}">
+                    Perfil
+                  </option>
+                </select>
+                <small class="vf-field-error" th:errors="*{roleId}"></small>
+              </div>
+              <button class="btn btn-primary w-100" data-submit>
+                <i class="bi bi-person-plus" aria-hidden="true"></i>
+                Criar acesso
+              </button>
+            </form>
+          </section>
+          <section>
+            <div class="vf-section-heading">
+              <h2>
+                Nesta filial
+                <span class="vf-count" th:text="${#lists.size(users)}">0</span>
+              </h2>
+              <label class="vf-search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input
+                  type="search"
+                  data-search="team-list"
+                  aria-label="Buscar pessoa"
+                  placeholder="Buscar pessoa…"
+                />
+              </label>
+            </div>
+            <div class="vf-card vf-table-wrap">
+              <table class="table vf-table">
+                <caption class="visually-hidden">
+                  Usuários e perfis autorizados na filial ativa
+                </caption>
+                <thead>
+                  <tr>
+                    <th>Pessoa</th>
+                    <th>Perfil</th>
+                    <th>Acesso</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="team-list">
+                  <tr
+                    th:each="user : ${users}"
+                    data-search-item
+                    th:attr="data-search-text=${user.name + ' ' + user.email + ' ' + user.role}"
+                  >
+                    <td>
+                      <div class="vf-table-person">
+                        <span class="vf-avatar" th:text="${#strings.substring(user.name, 0, 1)}">
+                          A
+                        </span>
+                        <div>
+                          <strong th:text="${user.name}">Nome</strong>
+                          <small th:text="${user.email}">E-mail</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="vf-role-tag" th:text="${user.role}">Perfil</span></td>
+                    <td>
+                      <span
+                        class="vf-badge"
+                        th:classappend="${!user.active ? 'vf-badge-warning' : ''}"
+                        th:text="${user.active ? 'Ativo' : 'Bloqueado'}"
+                      >
+                        Ativo
+                      </span>
+                    </td>
+                    <td>
+                      <div class="vf-user-actions">
+                        <details class="vf-inline-editor" th:if="${user.editable}">
+                          <summary>
+                            Editar acesso
+                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                          </summary>
+                          <form
+                            th:action="@{/usuarios/acessos/{id}(id=${user.grantId})}"
+                            method="post"
+                            data-confirm="Confirmar a alteração de perfil ou bloqueio nesta filial?"
+                          >
+                            <label class="form-label" th:for="${'role-' + user.grantId}">
+                              Perfil nesta filial
+                            </label>
+                            <select
+                              class="form-select mb-3"
+                              name="roleId"
+                              th:id="${'role-' + user.grantId}"
+                            >
+                              <option
+                                th:each="role : ${roles}"
+                                th:value="${role.id}"
+                                th:text="${role.name}"
+                                th:selected="${role.id == user.roleId}"
+                              >
+                                Perfil
+                              </option>
+                            </select>
+                            <label class="form-check-label mb-3">
+                              <input
+                                class="form-check-input me-2"
+                                type="checkbox"
+                                name="active"
+                                value="true"
+                                th:checked="${user.active}"
+                              />
+                              Acesso ativo
+                            </label>
+                            <button class="btn btn-primary btn-sm" data-submit>
+                              Salvar acesso
+                            </button>
+                          </form>
+                        </details>
+                        <form
+                          th:if="${user.editable || user.userId == currentUser.userId}"
+                          th:action="@{/usuarios/acessos/{id}/recuperacao(id=${user.grantId})}"
+                          method="post"
+                          data-confirm="Enviar instruções de recuperação ao e-mail cadastrado desta pessoa?"
+                        >
+                          <button class="btn btn-sm btn-outline-primary" data-submit>
+                            <i class="bi bi-envelope" aria-hidden="true"></i>
+                            Recuperar senha
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p data-search-empty="team-list" class="vf-filter-empty" hidden>
+              Nenhuma pessoa corresponde à busca.
+            </p>
+            <div class="vf-bottom-tip">
+              <i class="bi bi-info-circle" aria-hidden="true"></i>
+              <p>
+                Um perfil vale para esta filial. O acesso a outras unidades precisa ser concedido
+                separadamente.
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

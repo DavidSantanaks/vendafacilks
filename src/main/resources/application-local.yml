@@ -1,0 +1,13 @@
+spring:
+  thymeleaf:
+    cache: false
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+app:
+  public-port: ${PUBLIC_PORT:${APP_PORT:8080}}
+  base-domain: ${APP_BASE_DOMAIN:localhost}
+  demo-enabled: true
+  require-https: false

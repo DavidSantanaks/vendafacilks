@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Não foi possível continuar')}"></head>
+  <body class="vf-error-page">
+    <main id="conteudo" class="vf-card vf-error-card">
+      <span class="vf-error-icon"><i class="bi bi-shield-exclamation" aria-hidden="true"></i></span>
+      <span class="vf-eyebrow" th:text="${status ?: 'Ops'}">Ops</span>
+      <h1>Vamos conferir este acesso?</h1>
+      <p
+        th:text="${message ?: 'Não foi possível abrir esta página. Confira o endereço ou tente novamente.'}"
+      >
+        Não foi possível abrir esta página.
+      </p>
+      <p class="vf-muted vf-small">
+        Referência:
+        <code th:text="${correlationId}">indisponível</code>
+      </p>
+      <a class="btn btn-primary" th:href="@{/}">
+        Voltar ao início
+        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+      </a>
+    </main>
+  </body>
+</html>

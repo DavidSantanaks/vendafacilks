@@ -1,0 +1,26 @@
+.vf-sidebar,
+.vf-topbar,
+.vf-page-footer,
+.vf-help,
+button,
+.vf-skip {
+  display: none !important;
+}
+.vf-shell {
+  margin-left: 0;
+}
+.vf-content {
+  padding: 0;
+}
+body {
+  color: #000;
+  background: #fff;
+  font-size: 12pt;
+}
+.vf-card {
+  break-inside: avoid;
+  border: 1px solid #ccc;
+}
+@page {
+  margin: 15mm;
+}

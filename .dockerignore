@@ -1,0 +1,7 @@
+.git
+.tools
+.local
+.env
+.env.*
+target
+tooling/node_modules

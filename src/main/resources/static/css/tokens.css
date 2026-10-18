@@ -1,0 +1,19 @@
+:root {
+  --vf-color-primary: #137f68;
+  --vf-color-primary-dark: #0d6553;
+  --vf-color-ink: #202f34;
+  --vf-color-muted: #72817f;
+  --vf-color-surface: #ffffff;
+  --vf-color-background: #f6f8f7;
+  --vf-color-border: #e5ebe8;
+  --vf-color-sidebar: #142d2a;
+  --vf-color-soft: #edf6f2;
+  --vf-radius-sm: 8px;
+  --vf-radius-md: 12px;
+  --vf-radius-lg: 18px;
+  --vf-spacing-sm: 8px;
+  --vf-spacing-md: 16px;
+  --vf-spacing-lg: 24px;
+  --vf-spacing-xl: 32px;
+  --vf-sidebar-width: 252px;
+}

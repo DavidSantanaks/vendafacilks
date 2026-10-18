@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Entrar')}"></head>
+  <body class="vf-login-page">
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <section class="vf-login-story" aria-label="Bem-vindo ao vendaFacil">
+      <a class="vf-brand" th:href="@{/login}">
+        <span class="vf-brand-icon"><i class="bi bi-basket2" aria-hidden="true"></i></span>
+        <span>
+          venda
+          <span class="vf-brand-light">Facil</span>
+        </span>
+      </a>
+      <div>
+        <span class="vf-eyebrow">MAIS SIMPLES. MAIS SEU.</span>
+        <h1>
+          Seu negócio,
+          <br />
+          em boas mãos.
+        </h1>
+        <p>
+          Um espaço para cuidar da sua loja,
+          <br />
+          da sua equipe e de cada próximo passo.
+        </p>
+        <div class="vf-login-illustration" aria-hidden="true">
+          <div class="vf-illustration-top">
+            <i class="bi bi-shop"></i>
+            <span>Minha loja</span>
+            <span class="vf-mini-tag">Conectada</span>
+          </div>
+          <div class="vf-illustration-row">
+            <span class="vf-illustration-icon"><i class="bi bi-buildings"></i></span>
+            <div>
+              <strong>Cada filial, seu espaço.</strong>
+              <small>Organização que acompanha você.</small>
+            </div>
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div class="vf-illustration-row">
+            <span class="vf-illustration-icon"><i class="bi bi-shield-check"></i></span>
+            <div>
+              <strong>Cada acesso, uma permissão.</strong>
+              <small>Sua equipe no lugar certo.</small>
+            </div>
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+        </div>
+      </div>
+      <small>Gestão simples. Tempo para o que importa.</small>
+    </section>
+    <main id="conteudo" class="vf-login-main">
+      <div class="vf-login-form">
+        <div class="vf-login-tenant">
+          <i class="bi bi-shop" aria-hidden="true"></i>
+          <span th:text="${tenant.name}">Sua empresa</span>
+        </div>
+        <span class="vf-eyebrow">BOM TER VOCÊ AQUI</span>
+        <h2>Vamos começar?</h2>
+        <p class="vf-muted">Entre com sua conta para acessar seu espaço.</p>
+        <div th:if="${param.erro}" class="alert alert-danger" role="alert">
+          Não foi possível entrar. Confira seu e-mail, senha e o endereço da empresa. Após várias
+          tentativas, aguarde 15 minutos.
+        </div>
+        <div th:if="${param.saiu}" class="alert alert-success" role="status">
+          Você saiu da sua conta com segurança.
+        </div>
+        <div th:if="${param.senhaAlterada}" class="alert alert-success" role="status">
+          Senha alterada. Entre com sua nova senha.
+        </div>
+        <form th:action="@{/login}" method="post">
+          <div class="mb-4">
+            <label for="username" class="form-label">Seu e-mail</label>
+            <input
+              id="username"
+              class="form-control"
+              name="username"
+              type="email"
+              placeholder="voce@suaempresa.com.br"
+              autocomplete="username"
+              maxlength="254"
+              required
+              autofocus
+            />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Sua senha</label>
+            <div class="vf-password-wrap">
+              <input
+                id="password"
+                class="form-control"
+                name="password"
+                type="password"
+                placeholder="Digite sua senha"
+                autocomplete="current-password"
+                maxlength="64"
+                required
+              />
+              <button
+                class="vf-password-toggle"
+                type="button"
+                data-toggle-password="password"
+                aria-label="Mostrar senha"
+                aria-pressed="false"
+              >
+                <i class="bi bi-eye" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+          <p class="vf-login-recovery">
+            <a th:href="@{/recuperar-senha}">Esqueci minha senha</a>
+          </p>
+          <button class="btn btn-primary vf-full-button" data-submit>
+            Entrar na minha conta
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </button>
+        </form>
+        <div class="vf-login-secure">
+          <i class="bi bi-shield-lock" aria-hidden="true"></i>
+          Acesso exclusivo à sua empresa
+        </div>
+        <div th:if="${demoEnabled}" class="vf-demo-note">
+          <strong>Ambiente de demonstração</strong>
+          <p>
+            Use as contas fictícias e a senha configurada em
+            <code>DEMO_PASSWORD</code>
+            . Os acessos estão no README do projeto.
+          </p>
+        </div>
+      </div>
+      <footer>
+        vendaFacil
+        <span>·</span>
+        Seu negócio em movimento
+      </footer>
+    </main>
+  </body>
+</html>

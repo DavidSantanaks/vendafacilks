@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Empresas')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Empresas')}"></header>
+      <main class="vf-content" id="conteudo">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">ADMINISTRAÇÃO DA PLATAFORMA</span>
+            <h1>Empresas</h1>
+            <p>Organize os espaços de cada cliente com segurança.</p>
+          </div>
+          <span class="vf-status-chip">
+            <i class="bi bi-shield-lock" aria-hidden="true"></i>
+            Super Admin
+          </span>
+        </div>
+        <div class="vf-info-strip">
+          <i class="bi bi-shield-check" aria-hidden="true"></i>
+          <p>
+            Este painel mostra informações administrativas. O acesso aos dados operacionais de cada
+            empresa exige autorização específica.
+          </p>
+        </div>
+        <div class="vf-management-grid">
+          <section class="vf-card vf-form-card">
+            <h2>Criar empresa</h2>
+            <p class="vf-muted">Uma matriz e um administrador serão criados.</p>
+            <form th:action="@{/admin/empresas}" th:object="${tenantRegistration}" method="post">
+              <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger" role="alert">
+                <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="name">Nome da empresa</label>
+                <input class="form-control" id="name" th:field="*{name}" maxlength="120" required />
+                <small class="vf-field-error" th:errors="*{name}"></small>
+              </div>
+              <div class="mb-3">
+                <div class="vf-label-row">
+                  <label class="form-label" for="slug">Subdomínio</label>
+                  <details
+                    th:replace="~{fragments/help :: help('subdomínio', 'É o endereço exclusivo da empresa. Exemplo: minha-loja. Use letras minúsculas, números e hífens, de 3 a 63 caracteres. Este endereço será estável.')}"
+                  ></details>
+                </div>
+                <input
+                  class="form-control"
+                  id="slug"
+                  th:field="*{slug}"
+                  pattern="[a-z][a-z0-9-]{1,61}[a-z0-9]"
+                  required
+                />
+                <small class="vf-muted" th:text="${'.' + baseDomain}">.localhost</small>
+                <small class="vf-field-error" th:errors="*{slug}"></small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="adminName">Nome do administrador</label>
+                <input
+                  class="form-control"
+                  id="adminName"
+                  th:field="*{adminName}"
+                  maxlength="120"
+                  required
+                />
+                <small class="vf-field-error" th:errors="*{adminName}"></small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="email">E-mail do administrador</label>
+                <input
+                  class="form-control"
+                  id="email"
+                  type="email"
+                  th:field="*{email}"
+                  maxlength="254"
+                  required
+                />
+                <small class="vf-field-error" th:errors="*{email}"></small>
+              </div>
+              <div class="mb-4">
+                <label class="form-label" for="password">Senha inicial (12 a 64 caracteres)</label>
+                <input
+                  class="form-control"
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="12"
+                  maxlength="64"
+                  required
+                />
+                <small class="vf-field-error" th:errors="*{password}"></small>
+              </div>
+              <button class="btn btn-primary w-100" data-submit>
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                Criar empresa
+              </button>
+            </form>
+          </section>
+          <section>
+            <div class="vf-section-heading">
+              <h2>
+                Empresas cadastradas
+                <span class="vf-count" th:text="${#lists.size(companies)}">0</span>
+              </h2>
+              <label class="vf-search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input
+                  type="search"
+                  data-search="company-list"
+                  placeholder="Buscar empresa…"
+                  aria-label="Buscar empresa"
+                />
+              </label>
+            </div>
+            <div id="company-list">
+              <article
+                th:each="company : ${companies}"
+                class="vf-card vf-company-card"
+                data-search-item
+                th:attr="data-search-text=${company.name + ' ' + company.slug}"
+              >
+                <div class="vf-company-info">
+                  <span class="vf-store-symbol"><i class="bi bi-shop" aria-hidden="true"></i></span>
+                  <div>
+                    <h3 th:text="${company.name}">Empresa</h3>
+                    <a
+                      class="vf-company-url"
+                      th:href="${company.portalUrl}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      th:text="${company.slug + '.' + baseDomain}"
+                    >
+                      endereço.localhost
+                    </a>
+                  </div>
+                </div>
+                <div class="vf-company-metrics">
+                  <span>
+                    <i class="bi bi-shop" aria-hidden="true"></i>
+                    <strong th:text="${company.storeCount}">0</strong>
+                    filiais ativas
+                  </span>
+                  <a th:href="@{/admin/usuarios(empresa=${company.id})}">
+                    <i class="bi bi-people" aria-hidden="true"></i>
+                    <strong th:text="${company.userCount}">0</strong>
+                    usuários vinculados
+                  </a>
+                </div>
+                <div class="vf-company-links">
+                  <a
+                    class="btn btn-primary btn-sm"
+                    th:if="${company.active}"
+                    th:href="${company.portalUrl}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Abrir portal
+                    <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                  </a>
+                  <a
+                    class="btn btn-outline-primary btn-sm"
+                    th:href="@{/admin/usuarios(empresa=${company.id})}"
+                  >
+                    Gerenciar usuários
+                  </a>
+                  <details class="vf-inline-editor">
+                    <summary>
+                      Editar empresa
+                      <i class="bi bi-pencil" aria-hidden="true"></i>
+                    </summary>
+                    <form th:action="@{/admin/empresas/{id}(id=${company.id})}" method="post">
+                      <label class="form-label" th:for="${'company-' + company.id}">
+                        Nome da empresa
+                      </label>
+                      <input
+                        class="form-control mb-2"
+                        th:id="${'company-' + company.id}"
+                        name="name"
+                        th:value="${company.name}"
+                        maxlength="120"
+                        required
+                      />
+                      <button class="btn btn-primary btn-sm" data-submit>Salvar nome</button>
+                    </form>
+                  </details>
+                </div>
+                <div class="vf-company-actions">
+                  <span
+                    class="vf-badge"
+                    th:classappend="${!company.active ? 'vf-badge-warning' : ''}"
+                    th:text="${company.active ? 'Ativa' : 'Suspensa'}"
+                  >
+                    Ativa
+                  </span>
+                  <form
+                    th:action="@{/admin/empresas/{id}/status(id=${company.id})}"
+                    method="post"
+                    data-confirm="Confirmar a alteração de acesso desta empresa? Uma empresa suspensa não poderá acessar a operação."
+                  >
+                    <input type="hidden" name="active" th:value="${!company.active}" />
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      th:text="${company.active ? 'Suspender' : 'Ativar'}"
+                      data-submit
+                    >
+                      Suspender
+                    </button>
+                  </form>
+                </div>
+              </article>
+            </div>
+            <p class="vf-filter-empty" data-search-empty="company-list" hidden>
+              Nenhuma empresa corresponde à busca.
+            </p>
+          </section>
+        </div>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

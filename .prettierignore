@@ -1,0 +1,7 @@
+src/main/resources/static/vendor/
+tooling/node_modules/
+tooling/package-lock.json
+.tools/
+.local/
+target/
+SDD-VendaFacilKs.md

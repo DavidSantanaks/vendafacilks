@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-vendafacil}
+      POSTGRES_USER: ${DB_USER:-vendafacil}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-vendafacil}
+      DB_USER: ${DB_USER:-vendafacil}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      APP_BASE_DOMAIN: ${APP_BASE_DOMAIN:-localhost}
+      PUBLIC_PORT: ${APP_PORT:-8080}
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-acesso@vendafacil.example}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    restart: unless-stopped
+  mailpit:
+    image: axllent/mailpit:v1.31.6
+    ports:
+      - "127.0.0.1:${MAILPIT_HTTP_PORT:-8025}:8025"
+      - "127.0.0.1:1025:1025"
+    restart: unless-stopped
+volumes:
+  postgres_data:

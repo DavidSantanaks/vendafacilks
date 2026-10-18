@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Configurações')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Configurações')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">DO SEU JEITO, COM ORGANIZAÇÃO</span>
+            <h1>Configurações</h1>
+            <p>Cuide das informações e dos acessos da sua empresa.</p>
+          </div>
+        </div>
+        <div class="vf-shortcuts">
+          <a class="vf-card vf-shortcut" th:href="@{/configuracoes/filiais}">
+            <span class="vf-shortcut-icon"><i class="bi bi-buildings" aria-hidden="true"></i></span>
+            <div>
+              <h3>Filiais</h3>
+              <p>Cadastre unidades e atualize suas informações.</p>
+            </div>
+            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+          <a class="vf-card vf-shortcut" th:href="@{/usuarios}">
+            <span class="vf-shortcut-icon vf-icon-blue">
+              <i class="bi bi-people" aria-hidden="true"></i>
+            </span>
+            <div>
+              <h3>Equipe e acessos</h3>
+              <p>Cadastre pessoas e escolha seus perfis.</p>
+            </div>
+            <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+          </a>
+        </div>
+        <section class="vf-card vf-settings-info">
+          <h2>Seu ambiente</h2>
+          <dl>
+            <div>
+              <dt>Empresa</dt>
+              <dd th:text="${tenant.name}">Empresa</dd>
+            </div>
+            <div>
+              <dt>Endereço</dt>
+              <dd th:text="${tenant.slug + '.' + baseDomain}">Endereço</dd>
+            </div>
+            <div>
+              <dt>Filial ativa</dt>
+              <dd th:text="${activeStore.name}">Filial</dd>
+            </div>
+            <div>
+              <dt>Integração fiscal</dt>
+              <dd>Indisponível neste incremento</dd>
+            </div>
+          </dl>
+          <p class="vf-muted vf-small">
+            A operação comercial e a integração fiscal serão disponibilizadas em incrementos
+            posteriores, conforme o SDD.
+          </p>
+        </section>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>
