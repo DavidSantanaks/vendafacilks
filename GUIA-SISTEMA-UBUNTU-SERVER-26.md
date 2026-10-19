@@ -1,6 +1,6 @@
 # vendaFacil — sistema e infraestrutura no Ubuntu Server 26
 
-**Referência:** código da versão `0.2.0-SNAPSHOT`, atualizado em 19/10/2026.
+**Referência:** código da versão `0.3.0-SNAPSHOT`, atualizado em 19/10/2026.
 
 **Sistema operacional deste procedimento:** Ubuntu Server **26.04 LTS**, 64 bits.
 
@@ -8,7 +8,7 @@
 
 Este documento descreve o que está implementado, como instalar a infraestrutura, publicar os portais com HTTPS e manter os dados. Os comandos Linux são para **Bash no servidor Ubuntu**, salvo os blocos identificados como PowerShell.
 
-O projeto entrega a fundação de acesso, catálogo, preços e estoque de um PDV multiempresa e multifilial. **Vendas, caixa e emissão fiscal ainda não estão implementados.** Colocar os containers no servidor não transforma esta entrega na V1 comercial completa.
+O projeto entrega acesso, catálogo, preços, estoque e o ciclo de venda/caixa de demonstração de um PDV multiempresa e multifilial. **O PDV funciona somente em demonstração local/teste; produção e staging bloqueiam novas vendas até a integração fiscal da Etapa 4.** Colocar os containers no servidor não transforma esta entrega na V1 comercial completa.
 
 O procedimento foi preparado a partir dos arquivos do repositório e de documentação oficial. **A instalação em um Ubuntu Server 26.04 real, com domínio e SMTP de produção, ainda precisa ser executada e homologada.** Os exemplos de domínio, IP e e-mail devem ser substituídos pelos seus dados.
 
@@ -74,29 +74,32 @@ O botão **Abrir portal** no card da empresa abre seu endereço em outra aba. O 
 
 ### 2.1. Entregue nesta versão
 
-| Área              | Comportamento disponível                                                                                                 |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Acesso            | Login, logout, sessão por host e seleção/troca de filial autorizada                                                      |
-| Recuperação       | Solicitação por e-mail e redefinição de senha nos portais de empresa e da plataforma                                     |
-| Painel SaaS       | Criação de empresa com Matriz e administrador inicial; alteração do nome; ativação e suspensão                           |
-| Cards de empresas | Contadores de filiais e membros ativos, acesso ao portal e à gestão de usuários filtrada                                 |
-| Usuários SaaS     | Pesquisa, filtro por empresa, paginação de 20 contas, edição de nome, bloqueio/restauração global e envio de recuperação |
-| Equipe da filial  | Criação de acesso, busca, atribuição de perfil, bloqueio/restauração da concessão e recuperação por e-mail               |
-| Filiais           | Criação, edição, ativação e desativação, respeitando o acesso do administrador                                           |
-| Exportação        | CSV de filiais autorizadas, com proteção contra fórmulas de planilha                                                     |
-| Auditoria         | Registro de eventos com contexto e proteção contra UPDATE/DELETE por trigger                                             |
-| Interface         | Layout responsivo, ajuda por teclado/toque e tema em roxo e off-white                                                    |
-| Infraestrutura    | Compose local e de produção, migrations Flyway, logs estruturados e endpoint de saúde                                    |
+| Área                | Comportamento disponível                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Acesso              | Login, logout, sessão por host e seleção/troca de filial autorizada                                                       |
+| Recuperação         | Solicitação por e-mail e redefinição de senha nos portais de empresa e da plataforma                                      |
+| Painel SaaS         | Criação de empresa com Matriz e administrador inicial; alteração do nome; ativação e suspensão                            |
+| Cards de empresas   | Contadores de filiais e membros ativos, acesso ao portal e à gestão de usuários filtrada                                  |
+| Usuários SaaS       | Pesquisa, filtro por empresa, paginação de 20 contas, edição de nome, bloqueio/restauração global e envio de recuperação  |
+| Equipe da filial    | Criação de acesso, busca, atribuição de perfil, bloqueio/restauração da concessão e recuperação por e-mail                |
+| Filiais             | Criação, edição, ativação e desativação, respeitando o acesso do administrador                                            |
+| Exportação          | CSV de filiais autorizadas, com proteção contra fórmulas de planilha                                                      |
+| Auditoria           | Registro de eventos com contexto e proteção contra UPDATE/DELETE por trigger                                              |
+| Interface           | Layout responsivo, ajuda por teclado/toque e tema em roxo e off-white                                                     |
+| Infraestrutura      | Compose local e de produção, migrations Flyway, logs estruturados e endpoint de saúde                                     |
+| PDV de demonstração | Busca/leitor como teclado, carrinho UN/KG, pagamentos manuais/mistos, desconto acumulado e aprovação contextual           |
+| Caixa               | Abertura por operador/filial, suprimento, sangria com limite/aprovação, declaração imutável de contagem e fechamento cego |
+| Recibo e vendas     | Recibo de teste sem valor fiscal, impressão no navegador e relatório paginado/CSV da filial                               |
 
 ### 2.2. Próximas entregas
 
 A Etapa 2 acrescentou produtos/categorias, preços por filial com histórico, estoque/movimentos/mínimo por filial, imagens privadas PNG/JPEG e importação CSV/XLSX com prévia, relatório e confirmação integral. Consulte o [manual de catálogo e estoque](docs/runbooks/catalog-and-stock.md) para operar esses módulos. Imagens e dados de importação ficam no PostgreSQL e já participam do backup lógico descrito neste guia; não há volume adicional de uploads.
 
-Ainda não há PDV, vendas, caixa, cálculo de descontos comerciais, cancelamentos/devoluções, relatórios de vendas, recibos ou emissão de NF-e/NFC-e.
+A Etapa 3 acrescenta venda, caixa, pagamentos manuais/mistos, descontos, aprovações individuais e relatório/recibo de demonstração. Consulte [o manual de venda e caixa](docs/runbooks/sales-and-cash.md). Não há cancelamentos/devoluções, reembolsos ou emissão de NF-e/NFC-e nesta versão.
 
 Também estão pendentes convites com verificação de e-mail, alteração verificada de e-mail, edição das definições dos perfis, MFA, upload de logotipo, habilitação de módulos, cobrança recorrente da plataforma e ampliação de paginação nas demais telas.
 
-Existem permissões e políticas de desconto no banco para os módulos futuros. Isso **não significa que os respectivos fluxos de venda, aprovação ou fiscal já funcionem**.
+As políticas de caixa/desconto já funcionam em demonstração: operador 0%, gerente 10%, administrador 20%; teto acumulado de 20% por item; sangria máxima inicial de R$ 1.000,00 com aprovação; fechamento cego e tolerância zero para diferença. O administrador ajusta os parâmetros em **Meu caixa**. Estes valores concretizam P-009 tecnicamente e precisam ser validados com a operação. Os profiles `production` e `staging` bloqueiam o PDV no servidor, mesmo quando combinados com `local`; não há chave de ambiente para ignorar a dependência fiscal.
 
 O andamento detalhado está em [docs/implementation-status.md](docs/implementation-status.md), e o escopo original está em [SDD-VendaFacilKs.md](SDD-VendaFacilKs.md).
 
@@ -160,27 +163,30 @@ Controllers delegam regras a serviços; serviços e repositórios aplicam o cont
 
 ### 3.3. Modelo de dados atual
 
-| Tabela                                            | Conteúdo                                                          |
-| ------------------------------------------------- | ----------------------------------------------------------------- |
-| `tenants`                                         | Empresas, slug, nome e situação                                   |
-| `stores`                                          | Filiais associadas à empresa                                      |
-| `users`                                           | Identidade global, hash de senha, ativação e versão da credencial |
-| `memberships`                                     | Vínculo entre identidade e empresa                                |
-| `permissions`                                     | Catálogo de permissões                                            |
-| `roles`                                           | Perfis por empresa e limite de desconto cadastrado                |
-| `role_permissions`                                | Permissões de cada perfil                                         |
-| `membership_store_roles`                          | Concessões de perfil por filial e sua ativação                    |
-| `tenant_policies`                                 | Políticas iniciais para os próximos módulos                       |
-| `categories`, `products`                          | Categorias e catálogo compartilhado pela empresa                  |
-| `product_images`                                  | Imagens PNG normalizadas e privadas                               |
-| `store_prices`, `store_price_history`             | Preço da filial e histórico imutável                              |
-| `stock_balances`, `stock_movements`               | Saldo/mínimo por filial e livro de movimentações                  |
-| `import_jobs`, `import_rows`, `import_row_errors` | Prévias de importação, dados e erros por linha                    |
-| `password_reset_tokens`                           | Hash do token, escopo, validade e utilização                      |
-| `audit_logs`                                      | Eventos de auditoria                                              |
-| `flyway_schema_history`                           | Histórico técnico de migrations                                   |
+| Tabela                                                   | Conteúdo                                                          |
+| -------------------------------------------------------- | ----------------------------------------------------------------- |
+| `tenants`                                                | Empresas, slug, nome e situação                                   |
+| `stores`                                                 | Filiais associadas à empresa                                      |
+| `users`                                                  | Identidade global, hash de senha, ativação e versão da credencial |
+| `memberships`                                            | Vínculo entre identidade e empresa                                |
+| `permissions`                                            | Catálogo de permissões                                            |
+| `roles`                                                  | Perfis por empresa e limite de desconto cadastrado                |
+| `role_permissions`                                       | Permissões de cada perfil                                         |
+| `membership_store_roles`                                 | Concessões de perfil por filial e sua ativação                    |
+| `tenant_policies`                                        | Políticas iniciais para os próximos módulos                       |
+| `categories`, `products`                                 | Categorias e catálogo compartilhado pela empresa                  |
+| `product_images`                                         | Imagens PNG normalizadas e privadas                               |
+| `store_prices`, `store_price_history`                    | Preço da filial e histórico imutável                              |
+| `stock_balances`, `stock_movements`                      | Saldo/mínimo por filial e livro de movimentações                  |
+| `import_jobs`, `import_rows`, `import_row_errors`        | Prévias de importação, dados e erros por linha                    |
+| `password_reset_tokens`                                  | Hash do token, escopo, validade e utilização                      |
+| `audit_logs`                                             | Eventos de auditoria                                              |
+| `cash_registers`, `cash_sessions`                        | Caixas físicos e sessões OPEN/COUNTED/CLOSED por filial/operador  |
+| `cash_events`, `cash_counts`                             | Livro de dinheiro e contagem/esperado imutáveis                   |
+| `sales`, `sale_items`, `sale_payments`, `sale_approvals` | Venda de demonstração, snapshots, recebimentos e aprovações       |
+| `flyway_schema_history`                                  | Histórico técnico de migrations                                   |
 
-As migrations atuais são V1, V2 e V3. A V3 inclui categorias, produtos, imagens, preços/histórico, saldos, movimentos, lotes de importação, linhas e erros, com referências compostas por tenant/filial. O Hibernate valida o schema; não é usado `ddl-auto=update`. Migrations aplicadas não devem ser reescritas: alterações de banco devem entrar em nova migration.
+As migrations atuais são V1 a V4. V3 contém catálogo/estoque/importação; V4 acrescenta venda e caixa, liga baixas de estoque às vendas e define tolerância de diferença/limite de sangria, sem modificar V1–V3. O backup PostgreSQL integral inclui estes novos registros, sem volume adicional. O Hibernate valida o schema; não é usado `ddl-auto=update`. Migrations aplicadas não devem ser reescritas: alterações de banco devem entrar em nova migration. Antes de atualizar, faça backup e preserve a imagem anterior; retorno para versão com schema incompatível exige o procedimento de restauração, não apenas troca de JAR.
 
 O isolamento usa filtros de aplicação, autorização nos serviços e FKs compostas. **PostgreSQL Row Level Security não está implementado.** A trigger de auditoria impede alterações usuais de linhas, mas não substitui segregação de privilégios ou proteção contra um administrador do banco.
 
@@ -1330,20 +1336,20 @@ Antes de compartilhar logs, remova dados pessoais e eventuais segredos. Não pub
 
 ### 20.2. Limites antes da operação comercial
 
-| Tema                     | Situação atual                                                                                 |
-| ------------------------ | ---------------------------------------------------------------------------------------------- |
-| Escopo funcional         | Acesso, catálogo, preços e estoque; vendas, caixa e fiscal estão pendentes                     |
-| Alta disponibilidade     | Um host e uma instância; sem failover automático                                               |
-| Sessão e rate limit      | Em memória; exigem evolução para múltiplas instâncias                                          |
-| E-mails                  | Envio assíncrono sem persistência/retry automático                                             |
-| Segurança administrativa | MFA e convites verificados ainda pendentes                                                     |
-| Banco                    | Aplicação e migration usam a identidade de bootstrap PostgreSQL; privilégios mínimos pendentes |
-| Isolamento               | Aplicação e FKs compostas; sem RLS                                                             |
-| Auditoria                | Trigger contra alterações usuais; sem armazenamento externo imutável                           |
-| Capacidade               | Sem benchmark e sem limites de recursos no Compose de referência                               |
-| Observabilidade          | Logs e saúde agregada; sem alertas externos instalados                                         |
-| Backup/restore           | Procedimento documentado; aceite depende da instalação e do ensaio real                        |
-| Fiscal                   | Nenhum documento autorizado/emitido; integrações e homologação pendentes                       |
+| Tema                     | Situação atual                                                                                            |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Escopo funcional         | Acesso, catálogo/estoque e venda/caixa em demonstração; operação comercial de produção e fiscal pendentes |
+| Alta disponibilidade     | Um host e uma instância; sem failover automático                                                          |
+| Sessão e rate limit      | Em memória; exigem evolução para múltiplas instâncias                                                     |
+| E-mails                  | Envio assíncrono sem persistência/retry automático                                                        |
+| Segurança administrativa | MFA e convites verificados ainda pendentes                                                                |
+| Banco                    | Aplicação e migration usam a identidade de bootstrap PostgreSQL; privilégios mínimos pendentes            |
+| Isolamento               | Aplicação e FKs compostas; sem RLS                                                                        |
+| Auditoria                | Trigger contra alterações usuais; sem armazenamento externo imutável                                      |
+| Capacidade               | Sem benchmark e sem limites de recursos no Compose de referência                                          |
+| Observabilidade          | Logs e saúde agregada; sem alertas externos instalados                                                    |
+| Backup/restore           | Procedimento documentado; aceite depende da instalação e do ensaio real                                   |
+| Fiscal                   | Nenhum documento autorizado/emitido; integrações e homologação pendentes                                  |
 
 As etapas e critérios do SDD continuam sendo a referência para evoluir o produto. Este guia permite preparar e operar a infraestrutura da versão atual, com as limitações acima explícitas.
 
@@ -1357,6 +1363,9 @@ As etapas e critérios do SDD continuam sendo a referência para evoluir o produ
 - [Arquitetura da fundação](docs/architecture/foundation.md)
 - [Contratos HTTP](docs/api/foundation.md)
 - [Decisão sobre recuperação e administração](docs/decisions/0002-recovery-and-administration.md)
+- [Manual de venda e caixa](docs/runbooks/sales-and-cash.md)
+- [Contratos de venda e caixa](docs/api/sales-and-cash.md)
+- [Decisão sobre venda e caixa](docs/decisions/0004-sales-and-cash.md)
 - [Runbook local/produção](docs/runbooks/local-and-production.md)
 - [Verificação da entrega](docs/verification.md)
 - [Compose de produção](docker-compose.production.yml)

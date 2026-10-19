@@ -102,7 +102,7 @@ class CatalogAndStockIntegrationTest extends PostgresTestSupport {
               jdbc.queryForObject(
                   "SELECT max(version) FROM " + schema + ".flyway_schema_history WHERE success",
                   String.class))
-          .isEqualTo("3");
+          .isEqualTo("4");
     } finally {
       jdbc.execute("DROP SCHEMA IF EXISTS " + schema + " CASCADE");
     }

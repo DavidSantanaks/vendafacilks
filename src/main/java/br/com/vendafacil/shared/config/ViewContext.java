@@ -35,6 +35,11 @@ public class ViewContext {
     model.addAttribute("canChangePrice", false);
     model.addAttribute("canReadStock", false);
     model.addAttribute("canAdjustStock", false);
+    model.addAttribute("canSell", false);
+    model.addAttribute("canCash", false);
+    model.addAttribute("canWithdraw", false);
+    model.addAttribute("canSupply", false);
+    model.addAttribute("canReport", false);
     var authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null
         || !(authentication.getPrincipal() instanceof TenantPrincipal principal)) {
@@ -57,6 +62,11 @@ public class ViewContext {
       model.addAttribute("canChangePrice", permissions.contains(Permission.PRICE_CHANGE));
       model.addAttribute("canReadStock", permissions.contains(Permission.STOCK_READ));
       model.addAttribute("canAdjustStock", permissions.contains(Permission.STOCK_ADJUST));
+      model.addAttribute("canSell", permissions.contains(Permission.SALE_CREATE));
+      model.addAttribute("canCash", permissions.contains(Permission.CASH_OPEN));
+      model.addAttribute("canWithdraw", permissions.contains(Permission.CASH_WITHDRAW));
+      model.addAttribute("canSupply", permissions.contains(Permission.CASH_REINFORCE));
+      model.addAttribute("canReport", permissions.contains(Permission.REPORT_VIEW));
     } catch (StoreSelectionRequired ignored) {
       // A seleção de filial e as páginas de erro também usam o layout comum.
     }

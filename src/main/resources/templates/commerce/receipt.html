@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Recibo da venda')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Recibo da venda')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div id="commerce-error" class="alert alert-danger" role="alert" hidden></div>
+
+        <div class="vf-page-heading vf-no-print">
+          <div>
+            <h1>Venda concluída</h1>
+            <p>O estoque e os pagamentos foram registrados nesta filial.</p>
+          </div>
+          <div class="vf-catalog-actions">
+            <a class="btn btn-outline-primary" th:href="@{/pdv}">Nova venda</a>
+            <button class="btn btn-primary" data-print>Imprimir recibo</button>
+          </div>
+        </div>
+        <article class="vf-card vf-commerce-card vf-receipt">
+          <p class="vf-eyebrow">RECIBO NÃO FISCAL · DEMONSTRAÇÃO</p>
+          <h2 th:text="${tenant.name}"></h2>
+          <p th:text="${sale.store}"></p>
+          <p><strong>SEM VALOR FISCAL — DOCUMENTO DE TESTE</strong></p>
+          <p class="vf-receipt-id">
+            Venda
+            <span th:text="${sale.id}"></span>
+          </p>
+          <p>
+            <time
+              th:text="${#temporals.format(sale.createdAt.atZoneSameInstant(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM/yyyy HH:mm:ss')}"
+            ></time>
+            · Operador:
+            <span th:text="${sale.operator}"></span>
+          </p>
+          <p th:if="${!sale.customer.isEmpty()}">
+            Cliente:
+            <span th:text="${sale.customer}"></span>
+          </p>
+          <div class="table-responsive">
+            <table class="table vf-table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Quantidade</th>
+                  <th>Preço (R$)</th>
+                  <th>Desconto (R$)</th>
+                  <th>Total (R$)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="item : ${sale.items}">
+                  <td>
+                    <strong th:text="${item.name}"></strong>
+                    <small class="d-block" th:text="${item.sku}"></small>
+                  </td>
+                  <td>
+                    <span
+                      th:text="${#numbers.formatDecimal(item.quantity,1,'POINT',item.unit=='KG'?3:0,'COMMA')}"
+                    ></span>
+                    <span th:text="${item.unit}"></span>
+                  </td>
+                  <td th:text="${#numbers.formatDecimal(item.unitPrice,1,'POINT',2,'COMMA')}"></td>
+                  <td th:text="${#numbers.formatDecimal(item.discount,1,'POINT',2,'COMMA')}"></td>
+                  <td th:text="${#numbers.formatDecimal(item.total,1,'POINT',2,'COMMA')}"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <dl class="vf-money-summary">
+            <div>
+              <dt>Subtotal</dt>
+              <dd
+                th:text="${'R$ ' + #numbers.formatDecimal(sale.subtotal,1,'POINT',2,'COMMA')}"
+              ></dd>
+            </div>
+            <div>
+              <dt>Descontos</dt>
+              <dd
+                th:text="${'R$ ' + #numbers.formatDecimal(sale.discount,1,'POINT',2,'COMMA')}"
+              ></dd>
+            </div>
+            <div class="vf-total">
+              <dt>Total</dt>
+              <dd th:text="${'R$ ' + #numbers.formatDecimal(sale.total,1,'POINT',2,'COMMA')}"></dd>
+            </div>
+            <div th:each="payment : ${sale.payments}">
+              <dt
+                th:text="${payment.method=='CASH'?'Dinheiro recebido':(payment.method=='PIX'?'Pix':(payment.method=='DEBIT'?'Débito':'Crédito'))}"
+              ></dt>
+              <dd
+                th:text="${'R$ ' + #numbers.formatDecimal(payment.amount,1,'POINT',2,'COMMA')}"
+              ></dd>
+            </div>
+            <div>
+              <dt>Troco em dinheiro</dt>
+              <dd th:text="${'R$ ' + #numbers.formatDecimal(sale.change,1,'POINT',2,'COMMA')}"></dd>
+            </div>
+          </dl>
+          <p>Venda comercial concluída · Documento fiscal não emitido.</p>
+        </article>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+    <script type="module" th:src="@{/js/commerce/commerce.js}"></script>
+  </body>
+</html>

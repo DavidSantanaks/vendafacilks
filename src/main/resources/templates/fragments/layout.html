@@ -14,6 +14,7 @@
     <link rel="stylesheet" th:href="@{/css/tokens.css}" />
     <link rel="stylesheet" th:href="@{/css/app.css}" />
     <link rel="stylesheet" th:href="@{/css/catalog.css}" />
+    <link rel="stylesheet" th:href="@{/css/commerce.css}" />
     <link rel="stylesheet" th:href="@{/css/print.css}" media="print" />
     <script type="module" th:src="@{/js/shared/app.js}"></script>
   </head>
@@ -47,6 +48,30 @@
       </div>
       <div class="vf-nav-label">PRINCIPAL</div>
       <nav class="vf-nav" th:if="${!tenant.platform}">
+        <a
+          th:if="${canSell}"
+          th:href="@{/pdv}"
+          th:classappend="${currentPath == '/pdv' ? 'is-active' : ''}"
+        >
+          <i class="bi bi-cart3" aria-hidden="true"></i>
+          Frente de caixa
+        </a>
+        <a
+          th:if="${canCash}"
+          th:href="@{/caixa}"
+          th:classappend="${#strings.startsWith(currentPath, '/caixa') ? 'is-active' : ''}"
+        >
+          <i class="bi bi-cash-stack" aria-hidden="true"></i>
+          Meu caixa
+        </a>
+        <a
+          th:if="${canReport}"
+          th:href="@{/relatorios/vendas}"
+          th:classappend="${#strings.startsWith(currentPath, '/relatorios') ? 'is-active' : ''}"
+        >
+          <i class="bi bi-bar-chart" aria-hidden="true"></i>
+          Relatório de vendas
+        </a>
         <a
           th:href="@{/}"
           th:classappend="${currentPath == '/' ? 'is-active' : ''}"
@@ -131,7 +156,7 @@
           <span class="vf-online-dot"></span>
           Ambiente
           <span th:text="${demoEnabled ? 'de demonstração' : 'conectado'}">conectado</span>
-          <small>v0.2</small>
+          <small>v0.3</small>
         </div>
       </div>
     </aside>

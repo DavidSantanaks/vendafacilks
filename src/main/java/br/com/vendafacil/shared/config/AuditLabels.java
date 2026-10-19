@@ -7,6 +7,15 @@ import org.springframework.stereotype.Component;
 public class AuditLabels {
   private static final Map<String, String> LABELS =
       Map.ofEntries(
+          Map.entry("SALE_COMPLETED", "Venda de demonstração concluída"),
+          Map.entry("SALE_DISCOUNT_APPROVED", "Desconto comercial aprovado"),
+          Map.entry("CASH_REGISTER_CREATED", "Caixa cadastrado na filial"),
+          Map.entry("CASH_OPENED", "Sessão de caixa aberta"),
+          Map.entry("CASH_SUPPLIED", "Suprimento de caixa registrado"),
+          Map.entry("CASH_WITHDRAWN", "Sangria de caixa registrada"),
+          Map.entry("CASH_COUNT_DECLARED", "Contagem de caixa declarada"),
+          Map.entry("CASH_CLOSED", "Sessão de caixa encerrada"),
+          Map.entry("CASH_POLICY_CHANGED", "Políticas comerciais atualizadas"),
           Map.entry("STORE_SELECTED", "Filial selecionada para trabalhar"),
           Map.entry("STORE_CREATED", "Nova filial cadastrada"),
           Map.entry("STORE_UPDATED", "Informações da filial atualizadas"),

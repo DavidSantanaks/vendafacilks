@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Frente de caixa')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Frente de caixa')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div id="commerce-error" class="alert alert-danger" role="alert" hidden></div>
+
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">VENDA COM TUDO À MÃO</span>
+            <h1>Frente de caixa</h1>
+            <p>
+              Busque um produto ou leia seu código de barras. Para KG, informe o peso manualmente.
+            </p>
+          </div>
+          <a class="btn btn-outline-primary" th:href="@{/caixa}">Meu caixa</a>
+        </div>
+        <div class="alert alert-warning">
+          <strong>Ambiente de demonstração.</strong>
+          Pagamentos são registrados manualmente, sem cobrança ou emissão fiscal. O recibo não tem
+          valor fiscal.
+        </div>
+        <div th:unless="${salesEnabled}" class="vf-card vf-commerce-card">
+          <h2>PDV indisponível neste ambiente</h2>
+          <p>A operação em produção depende da integração fiscal da próxima etapa.</p>
+        </div>
+        <div
+          th:if="${salesEnabled and (cashSession == null or cashSession.status != 'OPEN')}"
+          class="vf-card vf-commerce-card"
+        >
+          <h2>Abra seu caixa para começar</h2>
+          <p>É necessário um caixa aberto em seu nome nesta filial.</p>
+          <a class="btn btn-primary" th:href="@{/caixa}">Acessar meu caixa</a>
+        </div>
+        <div
+          id="pos"
+          th:if="${salesEnabled and cashSession != null and cashSession.status == 'OPEN'}"
+          th:attr="data-session-id=${cashSession.id}"
+        >
+          <div class="vf-pos-grid">
+            <section class="vf-card vf-commerce-card">
+              <h2>Adicionar produtos</h2>
+              <form method="post" th:action="@{/pdv}" id="product-search" role="search">
+                <label for="pos-search">Nome, SKU ou código de barras</label>
+                <div class="vf-search-row">
+                  <input
+                    class="form-control"
+                    id="pos-search"
+                    maxlength="100"
+                    autocomplete="off"
+                    autofocus
+                  />
+                  <button class="btn btn-primary">Buscar</button>
+                </div>
+                <p class="vf-muted">
+                  Um código de barras exato adiciona 1 UN. Para KG, confirme o peso.
+                </p>
+              </form>
+              <div id="search-results" aria-live="polite"></div>
+              <hr />
+              <h2>Itens da venda</h2>
+              <p id="cart-empty" class="vf-muted">Seu carrinho está vazio.</p>
+              <div id="cart-items"></div>
+            </section>
+            <section class="vf-card vf-commerce-card">
+              <h2>Conferir e receber</h2>
+              <form method="post" th:action="@{/pdv}" id="checkout-form">
+                <label for="customer">Nome do cliente (opcional)</label>
+                <input class="form-control" id="customer" maxlength="120" autocomplete="off" />
+                <label for="sale-discount">Desconto na venda</label>
+                <div class="vf-discount-row">
+                  <select
+                    id="sale-discount-type"
+                    class="form-select"
+                    aria-label="Tipo de desconto na venda"
+                  >
+                    <option value="PERCENT">%</option>
+                    <option value="AMOUNT">R$</option>
+                  </select>
+                  <input class="form-control" id="sale-discount" value="0" inputmode="decimal" />
+                </div>
+                <p class="vf-muted">
+                  O limite considera o desconto do item junto com o desconto da venda: operador 0%,
+                  gerente 10%, administrador 20%.
+                </p>
+                <fieldset>
+                  <legend>Pagamentos recebidos (R$)</legend>
+                  <p class="vf-muted">
+                    Confirme o recebimento antes de registrar. Troco somente em dinheiro.
+                  </p>
+                  <label for="pay-cash">Dinheiro entregue pelo cliente</label>
+                  <input
+                    class="form-control"
+                    id="pay-cash"
+                    data-payment="CASH"
+                    inputmode="decimal"
+                  />
+                  <label for="pay-pix">Pix confirmado</label>
+                  <input class="form-control" id="pay-pix" data-payment="PIX" inputmode="decimal" />
+                  <label for="pay-debit">Cartão de débito confirmado</label>
+                  <input
+                    class="form-control"
+                    id="pay-debit"
+                    data-payment="DEBIT"
+                    inputmode="decimal"
+                  />
+                  <label for="pay-credit">Cartão de crédito confirmado</label>
+                  <input
+                    class="form-control"
+                    id="pay-credit"
+                    data-payment="CREDIT"
+                    inputmode="decimal"
+                  />
+                </fieldset>
+                <dl class="vf-money-summary" aria-live="polite">
+                  <div>
+                    <dt>Subtotal</dt>
+                    <dd id="pos-subtotal">—</dd>
+                  </div>
+                  <div>
+                    <dt>Desconto acumulado</dt>
+                    <dd id="pos-discount">—</dd>
+                  </div>
+                  <div class="vf-total">
+                    <dt>Total</dt>
+                    <dd id="pos-total">—</dd>
+                  </div>
+                  <div>
+                    <dt>Troco em dinheiro</dt>
+                    <dd id="pos-change">—</dd>
+                  </div>
+                </dl>
+                <button type="button" id="quote-button" class="btn btn-outline-primary">
+                  Calcular valores
+                </button>
+                <div id="approval-notice" class="alert alert-info" hidden></div>
+                <div id="discount-approval">
+                  <details class="vf-approval">
+                    <summary>Aprovação de desconto</summary>
+                    <p>
+                      Outra pessoa autorizada nesta filial deve conferir a operação e informar suas
+                      credenciais. A sessão do operador continua a mesma.
+                    </p>
+                    <label for="discount-email">E-mail de quem aprova</label>
+                    <input
+                      class="form-control"
+                      id="discount-email"
+                      name="approvalEmail"
+                      type="email"
+                      maxlength="254"
+                      autocomplete="off"
+                    />
+                    <label for="discount-password">Senha de quem aprova</label>
+                    <input
+                      class="form-control"
+                      id="discount-password"
+                      name="approvalPassword"
+                      type="password"
+                      maxlength="64"
+                      autocomplete="new-password"
+                    />
+                    <label for="discount-reason">Motivo da aprovação</label>
+                    <input
+                      class="form-control"
+                      id="discount-reason"
+                      name="approvalReason"
+                      maxlength="240"
+                    />
+                  </details>
+                </div>
+                <div id="stock-approval">
+                  <details class="vf-approval">
+                    <summary>Aprovação de estoque negativo</summary>
+                    <p>
+                      Outra pessoa autorizada nesta filial deve conferir a operação e informar suas
+                      credenciais. A sessão do operador continua a mesma.
+                    </p>
+                    <label for="stock-email">E-mail de quem aprova</label>
+                    <input
+                      class="form-control"
+                      id="stock-email"
+                      name="approvalEmail"
+                      type="email"
+                      maxlength="254"
+                      autocomplete="off"
+                    />
+                    <label for="stock-password">Senha de quem aprova</label>
+                    <input
+                      class="form-control"
+                      id="stock-password"
+                      name="approvalPassword"
+                      type="password"
+                      maxlength="64"
+                      autocomplete="new-password"
+                    />
+                    <label for="stock-reason">Motivo da aprovação</label>
+                    <input
+                      class="form-control"
+                      id="stock-reason"
+                      name="approvalReason"
+                      maxlength="240"
+                    />
+                  </details>
+                </div>
+                <button class="btn btn-primary vf-checkout-button">
+                  Confirmar venda de demonstração
+                </button>
+                <p class="vf-muted">
+                  Os valores e as permissões são conferidos novamente ao concluir.
+                </p>
+              </form>
+            </section>
+          </div>
+        </div>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+    <script type="module" th:src="@{/js/commerce/pos.js}"></script>
+  </body>
+</html>

@@ -2,7 +2,7 @@
 
 PDV web multiempresa e multifilial em **Java 25, Spring Boot 4.0.8, PostgreSQL, Spring MVC e Thymeleaf**, com Bootstrap 5 e JavaScript puro.
 
-Este repositório implementa a fundação multiempresa e a **Etapa 2 do [SDD-VendaFacilKs.md](SDD-VendaFacilKs.md)**: catálogo compartilhado pela empresa, produtos UN/KG, imagens validadas, preços e estoque por filial e importação CSV/XLSX com prévia. A versão atual é `0.2.0-SNAPSHOT`. **PDV, vendas, caixa e fiscal pertencem às próximas etapas; esta ainda não é a V1 comercial completa.**
+Este repositório implementa a fundação multiempresa e as **Etapas 2 e 3 do [SDD-VendaFacilKs.md](SDD-VendaFacilKs.md)**: catálogo, preços, estoque, importação, PDV, pagamentos manuais, descontos e caixa por filial. A versão atual é `0.3.0-SNAPSHOT`. **As vendas funcionam em demonstração local; emissão fiscal, devoluções e liberação comercial de produção pertencem às próximas etapas.**
 
 ## Executar com Docker
 
@@ -24,12 +24,12 @@ O iniciador localiza o Docker Desktop e inclui sua pasta no `PATH` somente do pr
 
 Abra:
 
-| Empresa | Endereço | Conta fictícia |
-| --- | --- | --- |
-| Mercado Boa Praça | http://boa-praca.localhost:8080 | `ana@boa-praca.example` |
-| Mercado Boa Praça, somente Centro | http://boa-praca.localhost:8080 | `caixa@boa-praca.example` |
-| Hortifruti Vila Verde | http://vila-verde.localhost:8080 | `admin@vila-verde.example` |
-| Administração SaaS | http://admin.localhost:8080 | `plataforma@vendafacil.example` |
+| Empresa                           | Endereço                         | Conta fictícia                  |
+| --------------------------------- | -------------------------------- | ------------------------------- |
+| Mercado Boa Praça                 | http://boa-praca.localhost:8080  | `ana@boa-praca.example`         |
+| Mercado Boa Praça, somente Centro | http://boa-praca.localhost:8080  | `caixa@boa-praca.example`       |
+| Hortifruti Vila Verde             | http://vila-verde.localhost:8080 | `admin@vila-verde.example`      |
+| Administração SaaS                | http://admin.localhost:8080      | `plataforma@vendafacil.example` |
 
 A senha de todas as contas fictícias é o valor de **`DEMO_PASSWORD`** configurado antes da primeira inicialização. O valor de exemplo é `VendaFacil-Local-2026!`. Nenhum dado de empresa, e-mail ou documento fiscal desta demonstração é real. Os dados iniciais só são criados em banco vazio, nos profiles `local` ou `test`; alterar a variável depois não altera senhas já armazenadas.
 
@@ -109,7 +109,26 @@ Spotless/Google Java Format verifica Java e whitespace de SQL/YAML; Prettier for
 - Imagens PNG/JPEG validadas, normalizadas e privadas, incluídas no backup PostgreSQL.
 - Importação CSV/XLSX com modelos versão 1, prévia, erros por linha, relatório CSV e confirmação atômica/idempotente.
 
-PDV, caixa, vendas, descontos comerciais, devoluções, relatórios de vendas e integração fiscal pertencem às próximas etapas do SDD. Não há emissão fiscal nem autorização simulada. Convites verificados, criação/edição de definições de perfis, MFA, logo por upload e habilitação de módulos ainda estão pendentes. Veja [o estado de implementação](docs/implementation-status.md).
+- PDV com leitor de código de barras como teclado, carrinho UN/KG, descontos por item/venda e cálculo final no servidor.
+- Dinheiro, Pix, débito e crédito manuais/mistos; troco somente sobre dinheiro recebido.
+- Sessões de caixa, fundo inicial, suprimento, sangria com limite/aprovação e fechamento cego em duas etapas.
+- Aprovações individuais por senha, limites acumulados e vínculo à operação, sem trocar a sessão do operador.
+- Checkout atômico e idempotente com snapshots, baixa de estoque, pagamentos, caixa e auditoria.
+- Recibo de demonstração sem valor fiscal, impressão pelo navegador e relatório paginado/CSV por filial/período.
+
+Devoluções e integração fiscal pertencem à Etapa 4. Não há documento fiscal nem autorização simulada. O servidor bloqueia vendas nos profiles `production` e `staging`, mesmo combinados com `local`. Convites verificados, edição de definições de perfis, MFA, logo por upload e habilitação de módulos ainda estão pendentes. Veja [o estado de implementação](docs/implementation-status.md).
+
+## Venda e caixa em demonstração
+
+Após atualizar com `docker compose up -d --build`, a migration V4 é aplicada automaticamente, preservando o catálogo e os saldos existentes. Faça backup antes de atualizar um banco importante. Não remova volumes para atualizar.
+
+1. Entre como administrador, selecione a filial e abra **Meu caixa**. Cadastre um caixa físico, por exemplo `Caixa 01`.
+2. O operador entra em sua própria conta, abre esse caixa com o fundo inicial e acessa **Frente de caixa**.
+3. Adicione produtos com preço ativo, informe quantidades/pesos e os pagamentos efetivamente recebidos no teste. Clique em **Calcular valores** para conferir.
+4. Se necessário, outra pessoa autorizada preenche a aprovação de desconto/estoque negativo. Confirme a venda e imprima o recibo de teste.
+5. Ao encerrar, conte o dinheiro e declare a contagem em **Meu caixa**. Só depois o esperado/diferença ficam disponíveis. Justifique e obtenha aprovação quando exigida, então conclua o fechamento.
+
+Padrões da empresa: operador 0%, gerente 10%, administrador 20%; teto acumulado de 20%; fechamento cego ativo; toda sangria exige aprovação, com máximo de R$ 1.000,00 por operação; qualquer diferença exige aprovação. O administrador ajusta as políticas na página do caixa. Estes valores iniciais são decisões técnicas documentadas, a validar com a operação. Consulte [o roteiro completo de venda e caixa](docs/runbooks/sales-and-cash.md).
 
 ## Produtos, preços, estoque e importação
 
@@ -137,17 +156,17 @@ Para SMTP real, configure `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSW
 
 ## Configuração
 
-| Variável | Uso |
-| --- | --- |
-| `SPRING_PROFILES_ACTIVE` | `local`, `test`, `staging` ou `production`; sem profile, a configuração é restritiva |
-| `DB_URL` | URL JDBC PostgreSQL |
-| `DB_USER`, `DB_PASSWORD` | Credenciais fora do repositório |
-| `APP_PORT` | Porta do servidor local, padrão 8080 |
-| `APP_BASE_DOMAIN` | Domínio-base controlado; `localhost` em desenvolvimento |
-| `DEMO_PASSWORD` | Senha das fixtures locais, de 12 a 64 caracteres e até 72 bytes UTF-8 |
-| `APP_TRUSTED_PROXY_REGEX` | IPs de proxy confiáveis, obrigatório em produção |
-| `APP_BOOTSTRAP_ADMIN_ENABLED` | `true` somente para provisionar o primeiro Super Admin |
-| `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | Conta inicial da plataforma; remover depois do provisionamento |
+| Variável                                            | Uso                                                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `SPRING_PROFILES_ACTIVE`                            | `local`, `test`, `staging` ou `production`; sem profile, a configuração é restritiva |
+| `DB_URL`                                            | URL JDBC PostgreSQL                                                                  |
+| `DB_USER`, `DB_PASSWORD`                            | Credenciais fora do repositório                                                      |
+| `APP_PORT`                                          | Porta do servidor local, padrão 8080                                                 |
+| `APP_BASE_DOMAIN`                                   | Domínio-base controlado; `localhost` em desenvolvimento                              |
+| `DEMO_PASSWORD`                                     | Senha das fixtures locais, de 12 a 64 caracteres e até 72 bytes UTF-8                |
+| `APP_TRUSTED_PROXY_REGEX`                           | IPs de proxy confiáveis, obrigatório em produção                                     |
+| `APP_BOOTSTRAP_ADMIN_ENABLED`                       | `true` somente para provisionar o primeiro Super Admin                               |
+| `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` | Conta inicial da plataforma; remover depois do provisionamento                       |
 
 Produção exige domínio controlado, HTTPS, banco sem dados fictícios e proxy confiável. Há um [Compose de referência](docker-compose.production.yml) e um [guia de operação](docs/runbooks/local-and-production.md). Esses arquivos não representam homologação de produção. A configuração fiscal e o piloto real continuam sujeitos aos critérios do SDD.
 

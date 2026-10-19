@@ -76,6 +76,34 @@
               <span class="vf-muted vf-small">Acessos rápidos</span>
             </div>
             <div class="vf-shortcuts">
+              <a class="vf-card vf-shortcut" th:if="${canSell}" th:href="@{/pdv}">
+                <span class="vf-shortcut-icon"><i class="bi bi-cart3" aria-hidden="true"></i></span>
+                <div>
+                  <h3>Frente de caixa</h3>
+                  <p>Produtos, pagamentos e nova venda.</p>
+                </div>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </a>
+              <a class="vf-card vf-shortcut" th:if="${canCash}" th:href="@{/caixa}">
+                <span class="vf-shortcut-icon vf-icon-purple">
+                  <i class="bi bi-cash-stack" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <h3>Meu caixa</h3>
+                  <p>Abertura, movimentos e fechamento.</p>
+                </div>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </a>
+              <a class="vf-card vf-shortcut" th:if="${canReport}" th:href="@{/relatorios/vendas}">
+                <span class="vf-shortcut-icon">
+                  <i class="bi bi-bar-chart" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <h3>Relatório de vendas</h3>
+                  <p>Resultados e recebimentos da filial.</p>
+                </div>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </a>
               <a class="vf-card vf-shortcut" th:if="${canReadProducts}" th:href="@{/produtos}">
                 <span class="vf-shortcut-icon">
                   <i class="bi bi-box-seam" aria-hidden="true"></i>

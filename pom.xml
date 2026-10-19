@@ -9,9 +9,9 @@
   </parent>
   <groupId>br.com.vendafacil</groupId>
   <artifactId>vendafacil</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
   <name>vendaFacil</name>
-  <description>PDV multiempresa — catálogo, preços e estoque por filial</description>
+  <description>PDV multiempresa — vendas, descontos e caixa</description>
   <properties>
     <java.version>25</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -1,5 +1,25 @@
 # Verificação das entregas
 
+## Etapa 3 — versão 0.3.0
+
+Data: 19/10/2026. Ambiente: Windows, Temurin 25.0.4.1, Maven 3.9.11, Spring Boot 4.0.8, Docker Desktop, PostgreSQL 17.11 e Chrome headless instalado.
+
+- Maven `spotless:apply verify`: **BUILD SUCCESS**, **96 testes**, zero falhas, erros ou ignorados. JAR `target/vendafacil-0.3.0-SNAPSHOT.jar`.
+- 20 testes de integração de venda/caixa: ciclo comercial UN/KG, snapshots, pagamentos mistos, troco líquido, desconto e aprovações, fechamento cego, limites configuráveis, diferença, isolamento de ator/filial/tenant, preço desatualizado, produto inativo, UN fracionada, CSRF, relatórios/CSV e imutabilidade PostgreSQL.
+- Concorrência real em duas sessões disputando a última unidade: uma venda confirmada e outra rejeitada sem aprovação; saldo final zero. Duas tentativas simultâneas da mesma venda retornam o mesmo UUID e criam apenas uma baixa e uma entrada de dinheiro.
+- Seis testes unitários comerciais: HALF_UP em KG, desconto efetivo acumulado, distribuição de centavos pelo maior resto, limite real após arredondamento, bloqueio de item gratuito/negativo e bloqueio de vendas em produção/staging mesmo combinados com `local`.
+- Os 70 testes anteriores continuam passando; migration isolada V2 → V4 mantém empresa/usuário existentes. V1–V3 não foram alteradas.
+- ESLint, Prettier e oito testes do validador de commits aprovados. Guia Ubuntu: 43 blocos Bash verificados com `sh -n`, 22 links locais válidos.
+- Imagem Docker `0.3.0-SNAPSHOT` construída e iniciada em projeto próprio `vendafacil-stage3-check`, com volume de teste e portas loopback de homologação. Sem uso do banco/containers do ambiente existente.
+- Chrome real: cadastro/preço/entrada de UN e KG, criação de gerente e caixa, abertura por operador, código de barras como teclado, peso manual, desconto de 5% aprovado por administrador e pagamentos mistos.
+- Venda de R$ 32,18: Pix R$ 20,00 e dinheiro R$ 20,00; troco R$ 7,82; fundo inicial R$ 50,00 resulta em R$ 62,18 esperados. Reenvio HTTP autenticado devolveu o mesmo UUID; recibo, PDF e saldos UN/KG conferidos.
+- Fechamento cego real: API sem esperado/movimentos antes da contagem; declaração, conferência e fechamento sem diferença. Em outra sessão: fundo R$ 100,00, suprimento R$ 10,00, sangria R$ 15,00 aprovada por gerente; esperado R$ 95,00, contado R$ 94,50 e fechamento com diferença aprovada.
+- Relatório por filial, totais, recibo e download CSV conferidos pelo navegador; identificação de demonstração e ausência de documento fiscal preservadas.
+- Desktop 1440 × 1050 e mobile 390 × 844: PDV, recibo, caixa e relatório sem expansão horizontal da página, sem IDs duplicados nem erros JavaScript/CSP. Tema roxo/off-white preservado; capturas e PDF ficam apenas em `.tools`.
+- Conferência visual com transições concluídas e rolagem inicial: menu mobile fechado fica fora da tela, abre e fecha por Escape; formulários de aprovação usam POST mesmo com JavaScript desativado. JAR final reempacotado com os assets conferidos.
+
+Não houve emissão fiscal, pagamento real, balança/leitor físico ou impressora física homologados. Ubuntu remoto, HTTPS/SMTP externos, carga e recuperação de desastre permanecem fora deste ensaio. O PDV continua bloqueado em produção/staging; devoluções, reembolsos e fiscal pertencem à Etapa 4.
+
 ## Etapa 2 — versão 0.2.0
 
 Data: 19/10/2026. Ambiente: Windows, JDK Temurin 25.0.4.1, Maven 3.9.11, Spring Boot 4.0.8, Docker Desktop e PostgreSQL 17.11 via Testcontainers.

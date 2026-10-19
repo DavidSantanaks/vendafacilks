@@ -1,5 +1,7 @@
 # Fundação e limites de confiança
 
+Na versão `0.3.0-SNAPSHOT`, o módulo `commerce` acrescenta checkout, caixa, descontos/aprovações, recibo de demonstração e relatórios. A transação compartilha o DataSource com catálogo/estoque e auditoria. V4 preserva V1–V3. Veja [ADR 0004](../decisions/0004-sales-and-cash.md) e [contratos de venda/caixa](../api/sales-and-cash.md). O servidor mantém vendas bloqueadas em produção/staging até a integração fiscal.
+
 ```text
 Host oficial → TenantHostFilter → sessão Spring Security → MembershipGuardFilter
     → Controller → serviço → AccessService → repository escopado → PostgreSQL
@@ -17,7 +19,7 @@ Auditoria é gravada na mesma transação das alterações administrativas. A tr
 
 A limitação de login é local ao processo: dez falhas por empresa/IP em quinze minutos, memória limitada. Para múltiplas réplicas, aplicar também limite distribuído no proxy. O proxy precisa definir os IPs confiáveis; endereços arbitrários de headers não são aceitos.
 
-Permissões são persistidas, com perfis padrão 0%/10%/20%. Esses valores são metadados nesta etapa; nenhum checkout ou cálculo de desconto está implementado. Edição de políticas e papéis exige o incremento de gestão de acessos previsto no backlog.
+Permissões são persistidas, com perfis padrão 0%/10%/20%, aplicados no checkout e na aprovação de descontos acumulados da Etapa 3. Políticas de caixa e teto de desconto são configuráveis por empresa com `USER_MANAGE`; edição das definições de papéis continua no backlog.
 
 A gestão de acessos pode ativar/desativar grants e reatribuir um perfil permitido ao concedente, somente na filial ativa e sem autoalteração. A administração SaaS gerencia dados de identidade e metadados de empresa sem impersonação. As URLs dos cards usam configuração de domínio/protocolo/porta pública.
 

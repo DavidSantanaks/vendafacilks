@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Relatório de vendas')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Relatório de vendas')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div id="commerce-error" class="alert alert-danger" role="alert" hidden></div>
+
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">ACOMPANHE SUA OPERAÇÃO</span>
+            <h1>Relatório de vendas</h1>
+            <p>Vendas de demonstração da filial ativa. Datas no horário de São Paulo.</p>
+          </div>
+          <a
+            class="btn btn-outline-primary"
+            th:href="@{/relatorios/vendas.csv(from=${from},to=${to})}"
+          >
+            Exportar CSV
+          </a>
+        </div>
+        <form
+          class="vf-card vf-commerce-card vf-report-filters"
+          th:action="@{/relatorios/vendas}"
+          method="get"
+        >
+          <div>
+            <label for="from">Data inicial</label>
+            <input
+              class="form-control"
+              type="date"
+              id="from"
+              name="from"
+              th:value="${from}"
+              required
+            />
+          </div>
+          <div>
+            <label for="to">Data final</label>
+            <input class="form-control" type="date" id="to" name="to" th:value="${to}" required />
+          </div>
+          <button class="btn btn-primary">Filtrar período</button>
+        </form>
+        <div class="vf-commerce-columns">
+          <section class="vf-card vf-commerce-card">
+            <h2>Resultado do período</h2>
+            <dl class="vf-money-summary">
+              <div>
+                <dt>Vendas</dt>
+                <dd th:text="${report.sales.total}"></dd>
+              </div>
+              <div class="vf-total">
+                <dt>Total líquido</dt>
+                <dd
+                  th:text="${'R$ ' + #numbers.formatDecimal(report.revenue,1,'POINT',2,'COMMA')}"
+                ></dd>
+              </div>
+              <div>
+                <dt>Descontos concedidos</dt>
+                <dd
+                  th:text="${'R$ ' + #numbers.formatDecimal(report.discounts,1,'POINT',2,'COMMA')}"
+                ></dd>
+              </div>
+            </dl>
+          </section>
+          <section class="vf-card vf-commerce-card">
+            <h2>Recebimentos líquidos</h2>
+            <p class="vf-muted">
+              Dinheiro já desconta o troco. Valores digitais não entram na gaveta.
+            </p>
+            <dl class="vf-money-summary">
+              <div th:each="method : ${report.methods}">
+                <dt
+                  th:text="${method.method=='CASH'?'Dinheiro':(method.method=='PIX'?'Pix':(method.method=='DEBIT'?'Débito':'Crédito'))}"
+                ></dt>
+                <dd
+                  th:text="${'R$ ' + #numbers.formatDecimal(method.amount,1,'POINT',2,'COMMA')}"
+                ></dd>
+              </div>
+            </dl>
+            <p th:each="unit : ${report.quantities}">
+              <strong
+                th:text="${#numbers.formatDecimal(unit.quantity,1,'POINT',unit.unit=='KG'?3:0,'COMMA')}"
+              ></strong>
+              <span th:text="${unit.unit}"></span>
+              vendidos
+            </p>
+          </section>
+        </div>
+        <section class="vf-card vf-commerce-card">
+          <h2>Vendas registradas</h2>
+          <div class="table-responsive">
+            <table class="table vf-table">
+              <thead>
+                <tr>
+                  <th>Data / hora</th>
+                  <th>Operador</th>
+                  <th>Cliente</th>
+                  <th>Total (R$)</th>
+                  <th>Recibo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="sale : ${report.sales.items}">
+                  <td
+                    th:text="${#temporals.format(sale.createdAt.atZoneSameInstant(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM/yyyy HH:mm')}"
+                  ></td>
+                  <td th:text="${sale.operator}"></td>
+                  <td th:text="${sale.customer.isEmpty()?'Não informado':sale.customer}"></td>
+                  <td th:text="${#numbers.formatDecimal(sale.total,1,'POINT',2,'COMMA')}"></td>
+                  <td><a th:href="@{/vendas/{id}/recibo(id=${sale.id})}">Ver recibo</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p th:if="${report.sales.items.isEmpty()}">Nenhuma venda neste período.</p>
+        </section>
+        <nav class="vf-pagination" aria-label="Páginas de vendas" th:if="${report.sales.pages()>1}">
+          <a
+            th:if="${report.sales.hasPrevious()}"
+            th:href="@{/relatorios/vendas(from=${from},to=${to},page=${report.sales.number - 1})}"
+          >
+            Anterior
+          </a>
+          <span
+            th:text="${'Página ' + (report.sales.number + 1) + ' de ' + report.sales.pages()}"
+          ></span>
+          <a
+            th:if="${report.sales.hasNext()}"
+            th:href="@{/relatorios/vendas(from=${from},to=${to},page=${report.sales.number + 1})}"
+          >
+            Próxima
+          </a>
+        </nav>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+    <script type="module" th:src="@{/js/commerce/commerce.js}"></script>
+  </body>
+</html>

@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Meu caixa')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Meu caixa')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div id="commerce-error" class="alert alert-danger" role="alert" hidden></div>
+
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">ABERTURA, MOVIMENTOS E CONFERÊNCIA</span>
+            <h1>Meu caixa</h1>
+            <p>Dinheiro físico e pagamentos digitais têm controles separados.</p>
+          </div>
+          <a th:if="${canSell}" class="btn btn-primary" th:href="@{/pdv}">
+            Ir para o PDV
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+        <div class="vf-commerce-columns">
+          <section class="vf-card vf-commerce-card" th:if="${cashDetail == null}">
+            <h2>Abrir uma sessão</h2>
+            <p th:if="${ownSession != null}">
+              Você já tem uma sessão em andamento.
+              <a th:href="@{/caixa/{id}(id=${ownSession.id})}">Acessar meu caixa</a>
+            </p>
+            <form
+              method="post"
+              th:action="@{/caixa}"
+              th:if="${ownSession == null and !registers.isEmpty()}"
+              data-cash-action="open"
+            >
+              <label for="register">Caixa</label>
+              <select class="form-select" id="register" name="registerId" required>
+                <option
+                  th:each="register : ${registers}"
+                  th:value="${register.id}"
+                  th:text="${register.name}"
+                ></option>
+              </select>
+              <label for="initial">Fundo inicial em dinheiro (R$)</label>
+              <input
+                class="form-control"
+                id="initial"
+                name="initial"
+                inputmode="decimal"
+                value="0,00"
+                required
+              />
+              <p class="vf-muted">
+                Informe apenas o dinheiro que está na gaveta. Cada operador precisa encerrar sua
+                sessão antes da troca.
+              </p>
+              <button class="btn btn-primary">Abrir caixa</button>
+            </form>
+            <p th:if="${registers.isEmpty()}">
+              Cadastre um caixa abaixo ou peça à administração da filial.
+            </p>
+            <form
+              method="post"
+              th:action="@{/caixa}"
+              th:if="${canManage}"
+              data-cash-action="register"
+            >
+              <hr />
+              <h3>Cadastrar caixa nesta filial</h3>
+              <label for="register-name">Nome do caixa</label>
+              <input
+                class="form-control"
+                id="register-name"
+                name="name"
+                maxlength="80"
+                placeholder="Ex.: Caixa 01"
+                required
+              />
+              <button class="btn btn-outline-primary">Cadastrar caixa</button>
+            </form>
+          </section>
+          <section
+            class="vf-card vf-commerce-card"
+            th:if="${cashDetail != null}"
+            th:attr="data-session-id=${cashDetail.session.id}"
+          >
+            <a th:href="@{/caixa}">Todos os caixas</a>
+            <h2 th:text="${cashDetail.session.registerName}"></h2>
+            <p>
+              <strong th:text="${cashDetail.session.operator}"></strong>
+              ·
+              <span
+                th:text="${cashDetail.session.status == 'OPEN' ? 'Aberto' : (cashDetail.session.status == 'COUNTED' ? 'Contagem declarada' : 'Fechado')}"
+              ></span>
+            </p>
+            <div th:if="${cashDetail.expected == null}" class="alert alert-info">
+              Fechamento cego ativo. Conte o dinheiro da gaveta antes de consultar a diferença. A
+              contagem declarada não pode ser alterada.
+            </div>
+            <dl th:if="${cashDetail.expected != null}" class="vf-money-summary">
+              <div>
+                <dt>Dinheiro esperado</dt>
+                <dd
+                  th:text="${'R$ ' + #numbers.formatDecimal(cashDetail.expected,1,'POINT',2,'COMMA')}"
+                ></dd>
+              </div>
+              <div th:if="${cashDetail.count != null}">
+                <dt>Dinheiro contado</dt>
+                <dd
+                  th:text="${'R$ ' + #numbers.formatDecimal(cashDetail.count.counted,1,'POINT',2,'COMMA')}"
+                ></dd>
+              </div>
+              <div th:if="${cashDetail.count != null}">
+                <dt>Diferença</dt>
+                <dd
+                  th:text="${'R$ ' + #numbers.formatDecimal(cashDetail.count.difference(),1,'POINT',2,'COMMA')}"
+                ></dd>
+              </div>
+            </dl>
+            <form
+              method="post"
+              th:action="@{/caixa}"
+              th:if="${ownDetail and cashDetail.session.status == 'OPEN' and (canWithdraw or canSupply)}"
+              data-cash-action="move"
+            >
+              <h3>Movimentar dinheiro</h3>
+              <label for="move-type">Movimento</label>
+              <select class="form-select" name="type" id="move-type">
+                <option th:if="${canSupply}" value="SUPPLY">Suprimento (entrada)</option>
+                <option th:if="${canWithdraw}" value="WITHDRAW">Sangria (saída)</option>
+              </select>
+              <label for="move-amount">Valor em dinheiro (R$)</label>
+              <input
+                class="form-control"
+                name="amount"
+                id="move-amount"
+                inputmode="decimal"
+                required
+              />
+              <label for="move-reason">Motivo do movimento</label>
+              <input
+                class="form-control"
+                name="reason"
+                id="move-reason"
+                minlength="5"
+                maxlength="240"
+                required
+              />
+              <details class="vf-approval">
+                <summary>Aprovação de sangria</summary>
+                <p>
+                  Outra pessoa autorizada nesta filial deve conferir a operação e informar suas
+                  credenciais. A sessão do operador continua a mesma.
+                </p>
+                <label for="move-email">E-mail de quem aprova</label>
+                <input
+                  class="form-control"
+                  id="move-email"
+                  name="approvalEmail"
+                  type="email"
+                  maxlength="254"
+                  autocomplete="off"
+                />
+                <label for="move-password">Senha de quem aprova</label>
+                <input
+                  class="form-control"
+                  id="move-password"
+                  name="approvalPassword"
+                  type="password"
+                  maxlength="64"
+                  autocomplete="new-password"
+                />
+                <label for="move-approval-reason">Motivo da aprovação</label>
+                <input
+                  class="form-control"
+                  id="move-approval-reason"
+                  name="approvalReason"
+                  maxlength="240"
+                />
+              </details>
+              <button class="btn btn-primary">Registrar movimento</button>
+            </form>
+            <form
+              method="post"
+              th:action="@{/caixa}"
+              th:if="${ownDetail and cashDetail.session.status == 'OPEN'}"
+              data-cash-action="count"
+            >
+              <hr />
+              <h3>Declarar contagem</h3>
+              <p>
+                Conte somente o dinheiro físico. Ao confirmar, esta sessão deixa de aceitar vendas e
+                movimentos.
+              </p>
+              <label for="counted">Dinheiro contado na gaveta (R$)</label>
+              <input
+                class="form-control"
+                id="counted"
+                name="counted"
+                inputmode="decimal"
+                required
+              />
+              <button class="btn btn-primary">Declarar contagem e conferir</button>
+            </form>
+            <form
+              method="post"
+              th:action="@{/caixa}"
+              th:if="${ownDetail and cashDetail.session.status == 'COUNTED'}"
+              data-cash-action="close"
+            >
+              <h3>Concluir fechamento</h3>
+              <p>
+                A diferença acima do limite da empresa exige aprovação de outra pessoa autorizada.
+              </p>
+              <label for="close-reason">Motivo / observação do fechamento</label>
+              <input
+                class="form-control"
+                id="close-reason"
+                name="reason"
+                minlength="5"
+                maxlength="240"
+                required
+              />
+              <details class="vf-approval">
+                <summary>Aprovação da diferença</summary>
+                <p>
+                  Outra pessoa autorizada nesta filial deve conferir a operação e informar suas
+                  credenciais. A sessão do operador continua a mesma.
+                </p>
+                <label for="close-email">E-mail de quem aprova</label>
+                <input
+                  class="form-control"
+                  id="close-email"
+                  name="approvalEmail"
+                  type="email"
+                  maxlength="254"
+                  autocomplete="off"
+                />
+                <label for="close-password">Senha de quem aprova</label>
+                <input
+                  class="form-control"
+                  id="close-password"
+                  name="approvalPassword"
+                  type="password"
+                  maxlength="64"
+                  autocomplete="new-password"
+                />
+                <label for="close-approval-reason">Motivo da aprovação</label>
+                <input
+                  class="form-control"
+                  id="close-approval-reason"
+                  name="approvalReason"
+                  maxlength="240"
+                />
+              </details>
+              <button class="btn btn-primary">Fechar caixa</button>
+            </form>
+          </section>
+          <section class="vf-card vf-commerce-card">
+            <h2>Sessões recentes</h2>
+            <p class="vf-muted">Até 30 sessões desta filial, conforme seu acesso.</p>
+            <div class="vf-session-list">
+              <a th:each="cashRow : ${sessions}" th:href="@{/caixa/{id}(id=${cashRow.id})}">
+                <strong th:text="${cashRow.registerName}"></strong>
+                <span th:text="${cashRow.operator}"></span>
+                <small
+                  th:text="${cashRow.status == 'OPEN' ? 'Aberto' : (cashRow.status == 'COUNTED' ? 'Contagem declarada' : 'Fechado')}"
+                ></small>
+              </a>
+            </div>
+            <p th:if="${sessions.isEmpty()}">Nenhuma sessão registrada.</p>
+          </section>
+        </div>
+        <section
+          class="vf-card vf-commerce-card"
+          th:if="${cashDetail != null and !cashDetail.events.isEmpty()}"
+        >
+          <h2>Movimentos desta sessão</h2>
+          <div class="table-responsive">
+            <table class="table vf-table">
+              <thead>
+                <tr>
+                  <th>Movimento</th>
+                  <th>Valor (R$)</th>
+                  <th>Motivo</th>
+                  <th>Responsável</th>
+                  <th>Aprovação</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="event : ${cashDetail.events}">
+                  <td
+                    th:text="${event.type == 'OPEN' ? 'Abertura' : (event.type == 'SUPPLY' ? 'Suprimento' : (event.type == 'WITHDRAW' ? 'Sangria' : (event.type == 'SALE' ? 'Venda' : 'Fechamento')))}"
+                  ></td>
+                  <td th:text="${#numbers.formatDecimal(event.amount,1,'POINT',2,'COMMA')}"></td>
+                  <td th:text="${event.reason}"></td>
+                  <td th:text="${event.actor}"></td>
+                  <td>
+                    <span th:text="${event.approver ?: 'Não exigida'}"></span>
+                    <small class="d-block" th:text="${event.approvalReason}"></small>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <details th:if="${canManage}" class="vf-card vf-commerce-card">
+          <summary>Políticas de caixa e descontos da empresa</summary>
+          <p>
+            Estas regras valem para todas as filiais. Padrão: fechamento cego, aprovação de toda
+            sangria e de qualquer diferença.
+          </p>
+          <form method="post" th:action="@{/caixa}" data-cash-action="policy">
+            <label class="form-check">
+              <input
+                type="checkbox"
+                name="blind"
+                class="form-check-input"
+                th:checked="${cashPolicy.blind}"
+              />
+              Fechamento cego
+            </label>
+            <label class="form-check">
+              <input
+                type="checkbox"
+                name="withdrawalApproval"
+                class="form-check-input"
+                th:checked="${cashPolicy.withdrawalApproval}"
+              />
+              Exigir aprovação para sangria
+            </label>
+            <label for="withdrawal-limit">Sangria máxima por operação (R$)</label>
+            <input
+              class="form-control"
+              id="withdrawal-limit"
+              name="withdrawalLimit"
+              th:value="${cashPolicy.withdrawalLimit}"
+              inputmode="decimal"
+              required
+            />
+            <label for="difference-limit">Diferença máxima sem aprovação (R$)</label>
+            <input
+              class="form-control"
+              id="difference-limit"
+              name="differenceLimit"
+              th:value="${cashPolicy.differenceLimit}"
+              inputmode="decimal"
+              required
+            />
+            <label for="discount-limit">Teto de desconto acumulado por item (%)</label>
+            <input
+              class="form-control"
+              id="discount-limit"
+              name="maximumDiscount"
+              th:value="${cashPolicy.maximumDiscount}"
+              inputmode="decimal"
+              required
+            />
+            <button class="btn btn-outline-primary">Salvar políticas</button>
+          </form>
+        </details>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+    <script type="module" th:src="@{/js/commerce/commerce.js}"></script>
+  </body>
+</html>

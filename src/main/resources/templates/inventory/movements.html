@@ -51,7 +51,9 @@
                       ></small>
                     </td>
                     <td>
-                      <span th:text="${movement.type == 'ENTRY' ? 'Entrada' : 'Ajuste'}"></span>
+                      <span
+                        th:text="${movement.type == 'ENTRY' ? 'Entrada' : (movement.type == 'SALE' ? 'Venda' : 'Ajuste')}"
+                      ></span>
                       <strong
                         class="d-block"
                         th:text="${#numbers.formatDecimal(movement.quantity, 1, 'POINT', movement.unit == 'KG' ? 3 : 0, 'COMMA') + ' ' + movement.unit}"

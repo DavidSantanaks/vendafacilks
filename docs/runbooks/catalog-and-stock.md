@@ -129,4 +129,4 @@ O operador de caixa inicial pode consultar produtos/preços, mas não recebe sal
 
 Use o `X-Correlation-ID` e logs categorizados, sem registrar senhas de aprovação, conteúdo dos arquivos ou dados pessoais desnecessários.
 
-Venda/caixa/desconto continuam na Etapa 3; documentos fiscais/devoluções, na Etapa 4. Não existe baixa automática de venda nesta entrega.
+Venda/caixa/desconto e baixa automática de estoque foram acrescentados na Etapa 3. Consulte [o manual de venda e caixa](sales-and-cash.md). Documentos fiscais, devoluções e reembolsos continuam previstos na Etapa 4; vendas desta versão são de demonstração.
