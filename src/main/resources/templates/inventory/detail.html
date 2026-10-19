@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Movimentar estoque')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Estoque / Produto')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <a class="vf-back-link" th:href="@{/estoque}">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          Voltar ao estoque
+        </a>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow" th:text="${product.sku}"></span>
+            <h1 th:text="${product.name}"></h1>
+            <p th:text="${'Movimentações em ' + activeStore.name}"></p>
+          </div>
+          <a
+            class="btn btn-outline-primary"
+            th:if="${canReadProducts}"
+            th:href="@{/produtos/{id}(id=${product.id})}"
+          >
+            Ver cadastro
+          </a>
+        </div>
+        <div class="vf-product-grid">
+          <div>
+            <section class="vf-card vf-form-card">
+              <span class="vf-eyebrow">SALDO ATUAL</span>
+              <p class="vf-product-price">
+                <span
+                  th:text="${#numbers.formatDecimal(product.quantity, 1, 'POINT', product.unit == 'KG' ? 3 : 0, 'COMMA')}"
+                ></span>
+                <small th:text="${product.unit}"></small>
+              </p>
+              <p
+                th:if="${product.minimum != null and product.quantity.compareTo(product.minimum) <= 0}"
+                class="vf-stock-alert"
+              >
+                <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                Estoque no mínimo ou abaixo.
+              </p>
+              <p th:if="${!product.active}" class="alert alert-warning">
+                Reative o produto no cadastro antes de registrar novas movimentações.
+              </p>
+            </section>
+            <section class="vf-card vf-form-card mt-4" th:if="${canAdjustStock}">
+              <h2>Estoque mínimo</h2>
+              <form th:action="@{/estoque/{id}/minimo(id=${product.id})}" method="post">
+                <input type="hidden" name="version" th:value="${product.stockVersion}" />
+                <div class="vf-label-row">
+                  <label class="form-label" for="minimum">Quantidade mínima</label>
+                  <details
+                    th:replace="~{fragments/help :: help('estoque mínimo', 'Ao atingir esta quantidade, o produto aparece no filtro de reposição da filial. UN aceita inteiros; KG aceita até três casas decimais. Deixe vazio para desativar o alerta.')}"
+                  ></details>
+                </div>
+                <input
+                  class="form-control"
+                  id="minimum"
+                  name="minimum"
+                  th:value="${minimum}"
+                  inputmode="decimal"
+                  maxlength="21"
+                />
+                <small
+                  class="vf-field-error"
+                  th:if="${minimumError != null}"
+                  th:text="${minimumError}"
+                  role="alert"
+                ></small>
+                <button class="btn btn-outline-primary mt-3" data-submit>Salvar mínimo</button>
+              </form>
+            </section>
+          </div>
+          <section class="vf-card vf-form-card" th:if="${canAdjustStock}">
+            <h2>Registrar movimentação</h2>
+            <p class="vf-muted">
+              O motivo e o responsável ficam no histórico. Correções são feitas por um novo ajuste.
+            </p>
+            <form
+              th:action="@{/estoque/{id}/movimentacoes(id=${product.id})}"
+              th:object="${stockForm}"
+              method="post"
+              data-confirm="Confirma esta movimentação de estoque na filial atual?"
+            >
+              <input type="hidden" th:field="*{operationId}" />
+              <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}" role="alert">
+                Confira os campos indicados. Nenhum saldo foi alterado.
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="type">Tipo de movimentação</label>
+                <select class="form-select" th:field="*{type}">
+                  <option value="ENTRY">Entrada de mercadoria</option>
+                  <option value="ADJUSTMENT">Ajuste de estoque</option>
+                </select>
+                <small class="vf-field-error" th:errors="*{type}"></small>
+              </div>
+              <div class="mb-3">
+                <div class="vf-label-row">
+                  <label class="form-label" for="quantity">Quantidade a movimentar</label>
+                  <details
+                    th:replace="~{fragments/help :: help('quantidade', 'Informe quanto deseja adicionar ou retirar, e não o saldo final. Entrada: número positivo. Ajuste: use positivo para adicionar e negativo para retirar, como -2. Para KG, use até três casas decimais, como 1,250. Não use separador de milhar.')}"
+                  ></details>
+                </div>
+                <input
+                  class="form-control"
+                  th:field="*{quantity}"
+                  inputmode="decimal"
+                  maxlength="22"
+                  required
+                />
+                <small class="vf-field-error" th:errors="*{quantity}"></small>
+                <small
+                  class="d-block vf-muted mt-1"
+                  th:text="${product.unit == 'KG' ? 'Quantidade em kg, com até três casas decimais.' : 'Quantidade em unidades inteiras.'}"
+                ></small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="reason">Motivo da movimentação</label>
+                <input
+                  class="form-control"
+                  th:field="*{reason}"
+                  minlength="5"
+                  maxlength="240"
+                  required
+                  placeholder="Ex.: Recebimento do fornecedor"
+                />
+                <small class="vf-field-error" th:errors="*{reason}"></small>
+              </div>
+              <details
+                class="vf-approval"
+                th:attr="open=${#fields.hasErrors('approverEmail') or #fields.hasErrors('approvalReason') ? 'open' : null}"
+              >
+                <summary>
+                  <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                  Aprovar exceção de estoque negativo
+                </summary>
+                <p class="vf-muted vf-small mt-3">
+                  Necessário se o saldo final ficar negativo. Outra pessoa com permissão nesta
+                  filial deve autorizar. Sua sessão continuará sendo usada para registrar a
+                  operação.
+                </p>
+                <div class="mb-3">
+                  <label class="form-label" for="approverEmail">E-mail do aprovador</label>
+                  <input
+                    class="form-control"
+                    type="email"
+                    th:field="*{approverEmail}"
+                    maxlength="254"
+                    autocomplete="off"
+                  />
+                  <small class="vf-field-error" th:errors="*{approverEmail}"></small>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="approverPassword">Senha do aprovador</label>
+                  <input
+                    class="form-control"
+                    type="password"
+                    id="approverPassword"
+                    name="approverPassword"
+                    maxlength="64"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="approvalReason">Justificativa da exceção</label>
+                  <input class="form-control" th:field="*{approvalReason}" maxlength="240" />
+                  <small class="vf-field-error" th:errors="*{approvalReason}"></small>
+                </div>
+              </details>
+              <button class="btn btn-primary mt-4" data-submit th:disabled="${!product.active}">
+                Registrar movimentação
+              </button>
+            </form>
+          </section>
+        </div>
+        <section class="vf-card vf-form-card mt-4">
+          <div class="vf-section-heading">
+            <h2>Últimas movimentações</h2>
+            <a th:href="@{/estoque/movimentacoes(product=${product.id})}">Ver histórico completo</a>
+          </div>
+          <div th:replace="~{inventory/movements :: movementTable}"></div>
+        </section>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

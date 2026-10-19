@@ -11,7 +11,7 @@ RUN sh mvnw -B package -DskipTests -Dspotless.skip=true
 FROM eclipse-temurin:25-jre-alpine
 RUN addgroup -S vendafacil && adduser -S vendafacil -G vendafacil
 WORKDIR /app
-COPY --from=build --chown=vendafacil:vendafacil /build/target/vendafacil-0.1.0-SNAPSHOT.jar app.jar
+COPY --from=build --chown=vendafacil:vendafacil /build/target/vendafacil-0.2.0-SNAPSHOT.jar app.jar
 USER vendafacil
 EXPOSE 8080
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]

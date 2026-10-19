@@ -13,6 +13,7 @@
     <link rel="stylesheet" th:href="@{/vendor/icons/bootstrap-icons.min.css}" />
     <link rel="stylesheet" th:href="@{/css/tokens.css}" />
     <link rel="stylesheet" th:href="@{/css/app.css}" />
+    <link rel="stylesheet" th:href="@{/css/catalog.css}" />
     <link rel="stylesheet" th:href="@{/css/print.css}" media="print" />
     <script type="module" th:src="@{/js/shared/app.js}"></script>
   </head>
@@ -58,6 +59,30 @@
           <i class="bi bi-shop" aria-hidden="true"></i>
           Minhas filiais
           <span class="vf-nav-dot"></span>
+        </a>
+        <a
+          th:if="${canReadProducts}"
+          th:href="@{/produtos}"
+          th:classappend="${#strings.startsWith(currentPath, '/produtos') and !#strings.startsWith(currentPath, '/produtos/importacoes') ? 'is-active' : ''}"
+        >
+          <i class="bi bi-box-seam" aria-hidden="true"></i>
+          Produtos
+        </a>
+        <a
+          th:if="${canReadStock}"
+          th:href="@{/estoque}"
+          th:classappend="${#strings.startsWith(currentPath, '/estoque') ? 'is-active' : ''}"
+        >
+          <i class="bi bi-boxes" aria-hidden="true"></i>
+          Estoque
+        </a>
+        <a
+          th:if="${canImportProducts}"
+          th:href="@{/produtos/importacoes}"
+          th:classappend="${#strings.startsWith(currentPath, '/produtos/importacoes') ? 'is-active' : ''}"
+        >
+          <i class="bi bi-file-earmark-arrow-up" aria-hidden="true"></i>
+          Importar produtos
         </a>
         <a
           th:if="${canManage}"
@@ -106,7 +131,7 @@
           <span class="vf-online-dot"></span>
           Ambiente
           <span th:text="${demoEnabled ? 'de demonstração' : 'conectado'}">conectado</span>
-          <small>v0.1</small>
+          <small>v0.2</small>
         </div>
       </div>
     </aside>
@@ -145,6 +170,12 @@
       </div>
     </header>
     <div th:fragment="alerts">
+      <div
+        class="alert alert-warning vf-alert"
+        role="alert"
+        th:if="${warning != null}"
+        th:text="${warning}"
+      ></div>
       <div class="alert alert-success vf-alert" role="status" th:if="${success != null}">
         <i class="bi bi-check-circle" aria-hidden="true"></i>
         <span th:text="${success}">Concluído.</span>

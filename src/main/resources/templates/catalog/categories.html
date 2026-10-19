@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Categorias')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Produtos / Categorias')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <a class="vf-back-link" th:href="@{/produtos}">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          Voltar ao catálogo
+        </a>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">ENCONTRE TUDO COM MAIS FACILIDADE</span>
+            <h1>Categorias</h1>
+            <p>Organização compartilhada entre as filiais da sua empresa.</p>
+          </div>
+        </div>
+        <div class="vf-product-grid">
+          <section class="vf-card vf-form-card">
+            <h2>Nova categoria</h2>
+            <form th:action="@{/produtos/categorias}" method="post">
+              <label class="form-label" for="category-name">Nome da categoria</label>
+              <input
+                class="form-control"
+                id="category-name"
+                name="name"
+                maxlength="80"
+                th:value="${categoryName}"
+                placeholder="Ex.: Mercearia"
+                required
+              />
+              <small
+                class="vf-field-error"
+                th:if="${categoryError != null}"
+                th:text="${categoryError}"
+                role="alert"
+              ></small>
+              <button class="btn btn-primary mt-3" data-submit>Criar categoria</button>
+            </form>
+          </section>
+          <section class="vf-card vf-form-card">
+            <h2>Categorias cadastradas</h2>
+            <p class="vf-muted">
+              Inativar impede novas associações e preserva os produtos existentes.
+            </p>
+            <div class="vf-empty vf-empty-small" th:if="${categories.isEmpty()}">
+              <p>Nenhuma categoria cadastrada.</p>
+            </div>
+            <form
+              class="vf-category-row"
+              th:each="category : ${categories}"
+              th:action="@{/produtos/categorias/{id}(id=${category.id})}"
+              method="post"
+            >
+              <input type="hidden" name="version" th:value="${category.version}" />
+              <div class="flex-grow-1">
+                <label class="visually-hidden" th:for="${'name-' + category.id}">
+                  Nome da categoria
+                </label>
+                <input
+                  class="form-control"
+                  th:id="${'name-' + category.id}"
+                  name="name"
+                  th:value="${category.name}"
+                  maxlength="80"
+                  required
+                />
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  th:id="${'active-' + category.id}"
+                  name="active"
+                  value="true"
+                  th:checked="${category.active}"
+                />
+                <label class="form-check-label" th:for="${'active-' + category.id}">Ativa</label>
+              </div>
+              <button class="btn btn-outline-primary" data-submit>Salvar</button>
+            </form>
+          </section>
+        </div>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

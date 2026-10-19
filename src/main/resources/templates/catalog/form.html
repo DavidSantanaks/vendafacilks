@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Cadastro de produto')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Produtos / Cadastro')}"></header>
+      <main id="conteudo" class="vf-content">
+        <a class="vf-back-link" th:href="@{/produtos}">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          Voltar ao catálogo
+        </a>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">CADASTRO COMPARTILHADO DA EMPRESA</span>
+            <h1 th:text="${editing ? 'Editar produto' : 'Novo produto'}"></h1>
+            <p>As informações deste cadastro valem para todas as filiais da empresa.</p>
+          </div>
+        </div>
+        <section class="vf-card vf-form-card vf-product-form">
+          <form
+            th:action="${editing ? '/produtos/' + product.id : '/produtos'}"
+            th:object="${productForm}"
+            method="post"
+          >
+            <input type="hidden" th:field="*{version}" />
+            <div class="alert alert-danger" role="alert" th:if="${#fields.hasAnyErrors()}">
+              Confira os campos indicados. O cadastro não foi salvo.
+            </div>
+            <div class="row g-4">
+              <div class="col-md-8">
+                <label class="form-label" for="name">Nome do produto</label>
+                <input
+                  class="form-control"
+                  th:field="*{name}"
+                  maxlength="160"
+                  required
+                  placeholder="Ex.: Arroz branco 5 kg"
+                />
+                <small class="vf-field-error" th:errors="*{name}"></small>
+              </div>
+              <div class="col-md-4">
+                <div class="vf-label-row">
+                  <label class="form-label" for="sku">SKU interno</label>
+                  <details
+                    th:replace="~{fragments/help :: help('SKU', 'Código único do produto na sua empresa. Exemplo: ARROZ-005. Use letras, números, ponto, barra, hífen ou sublinhado. Será salvo em maiúsculas.')}"
+                  ></details>
+                </div>
+                <input
+                  class="form-control"
+                  th:field="*{sku}"
+                  maxlength="60"
+                  required
+                  placeholder="ARROZ-005"
+                />
+                <small class="vf-field-error" th:errors="*{sku}"></small>
+              </div>
+              <div class="col-md-6">
+                <div class="vf-label-row">
+                  <label class="form-label" for="barcode">
+                    Código de barras
+                    <span class="vf-muted">(opcional)</span>
+                  </label>
+                  <details
+                    th:replace="~{fragments/help :: help('código de barras', 'Informe o código lido na embalagem, preservando os zeros iniciais. Ele deve ser único nesta empresa e não pode conter espaços. O leitor USB pode preencher este campo.')}"
+                  ></details>
+                </div>
+                <input
+                  class="form-control"
+                  th:field="*{barcode}"
+                  maxlength="64"
+                  autocomplete="off"
+                />
+                <small class="vf-field-error" th:errors="*{barcode}"></small>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="categoryId">
+                  Categoria
+                  <span class="vf-muted">(opcional)</span>
+                </label>
+                <select class="form-select" th:field="*{categoryId}">
+                  <option value="">Sem categoria</option>
+                  <option
+                    th:each="category : ${categories}"
+                    th:value="${category.id}"
+                    th:text="${category.name + (category.active ? '' : ' (inativa)')}"
+                  ></option>
+                </select>
+                <small class="vf-field-error" th:errors="*{categoryId}"></small>
+                <a
+                  class="vf-small"
+                  th:href="@{/produtos/categorias}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Gerenciar categorias em outra aba
+                </a>
+              </div>
+              <div class="col-md-6">
+                <div class="vf-label-row">
+                  <label class="form-label" for="unit">Unidade de venda</label>
+                  <details
+                    th:replace="~{fragments/help :: help('unidade', 'UN aceita quantidades inteiras. KG aceita peso manual com até três casas decimais, por exemplo 1,250 kg. A unidade não poderá mudar depois de movimentar estoque ou definir um mínimo.')}"
+                  ></details>
+                </div>
+                <select class="form-select" th:field="*{unit}">
+                  <option value="UN">UN — unidade inteira</option>
+                  <option value="KG">KG — quilograma</option>
+                </select>
+                <small class="vf-field-error" th:errors="*{unit}"></small>
+              </div>
+              <div class="col-md-6 d-flex align-items-center">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" th:field="*{active}" />
+                  <label class="form-check-label" for="active">Produto ativo</label>
+                  <small class="d-block vf-muted">
+                    Inativar preserva o cadastro e o histórico de estoque.
+                  </small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="vf-label-row">
+                  <label class="form-label" for="ncm">
+                    NCM
+                    <span class="vf-muted">(opcional)</span>
+                  </label>
+                  <details
+                    th:replace="~{fragments/help :: help('NCM', 'Código fiscal de oito dígitos. Preencha somente com a classificação validada pela sua contabilidade. O cadastro deste código não habilita emissão fiscal.')}"
+                  ></details>
+                </div>
+                <input class="form-control" th:field="*{ncm}" maxlength="8" inputmode="numeric" />
+                <small class="vf-field-error" th:errors="*{ncm}"></small>
+              </div>
+              <div class="col-md-6">
+                <div class="vf-label-row">
+                  <label class="form-label" for="cest">
+                    CEST
+                    <span class="vf-muted">(opcional)</span>
+                  </label>
+                  <details
+                    th:replace="~{fragments/help :: help('CEST', 'Código de sete dígitos, quando aplicável ao produto. Consulte a contabilidade antes de preencher. Deixe vazio quando não informado.')}"
+                  ></details>
+                </div>
+                <input class="form-control" th:field="*{cest}" maxlength="7" inputmode="numeric" />
+                <small class="vf-field-error" th:errors="*{cest}"></small>
+              </div>
+            </div>
+            <p class="vf-form-note">
+              Depois de salvar, defina o preço da filial e adicione a imagem do produto.
+            </p>
+            <div class="vf-catalog-actions">
+              <button
+                class="btn btn-primary"
+                data-submit
+                th:text="${editing ? 'Salvar alterações' : 'Cadastrar produto'}"
+              ></button>
+              <a class="btn btn-outline-primary" th:href="@{/produtos}">Cancelar</a>
+            </div>
+          </form>
+        </section>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

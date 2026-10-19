@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Importar produtos')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Produtos / Importação')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">SEU CATÁLOGO, SEM RETRABALHO</span>
+            <h1>Importar produtos</h1>
+            <p>Envie a planilha, confira a prévia e confirme quando estiver tudo correto.</p>
+          </div>
+          <a class="btn btn-outline-primary" th:href="@{/produtos}">Ver catálogo</a>
+        </div>
+        <div class="vf-product-grid">
+          <section class="vf-card vf-form-card">
+            <h2>1. Prepare o arquivo</h2>
+            <p class="vf-muted">
+              Baixe um modelo e mantenha o cabeçalho e a versão. A importação cria produtos novos e
+              categorias necessárias; não atualiza produtos existentes.
+            </p>
+            <div class="vf-catalog-actions mb-4">
+              <a class="btn btn-outline-primary" th:href="@{/produtos/importacoes/modelo.csv}">
+                <i class="bi bi-download" aria-hidden="true"></i>
+                Modelo CSV
+              </a>
+              <a class="btn btn-outline-primary" th:href="@{/produtos/importacoes/modelo.xlsx}">
+                <i class="bi bi-download" aria-hidden="true"></i>
+                Modelo XLSX
+              </a>
+            </div>
+            <ul class="vf-import-instructions">
+              <li>
+                Até
+                <strong>1.000 produtos</strong>
+                e
+                <strong>5 MB</strong>
+                por arquivo.
+              </li>
+              <li>
+                CSV em UTF-8, separado por ponto e vírgula. XLSX com uma única aba, sem fórmulas ou
+                macros.
+              </li>
+              <li>SKU e código de barras como texto, preservando os zeros iniciais.</li>
+              <li>
+                Preço:
+                <strong>19,90</strong>
+                ou
+                <strong>19.90</strong>
+                . Sem separador de milhar.
+              </li>
+              <li>
+                UN: quantidades inteiras. KG: até três casas decimais, como
+                <strong>1,250</strong>
+                .
+              </li>
+              <li>
+                Preço, estoque inicial e mínimo são opcionais e se aplicam somente à
+                <strong th:text="${activeStore.name}"></strong>
+                , respeitando suas permissões.
+              </li>
+            </ul>
+          </section>
+          <section class="vf-card vf-form-card">
+            <h2>2. Gere a prévia</h2>
+            <p class="vf-muted">
+              Nenhum produto é cadastrado neste envio. Você poderá conferir os dados e baixar um
+              relatório antes de confirmar.
+            </p>
+            <form th:action="@{/produtos/importacoes}" method="post" enctype="multipart/form-data">
+              <label class="form-label" for="file">Arquivo de produtos</label>
+              <input
+                class="form-control"
+                id="file"
+                name="file"
+                type="file"
+                accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                required
+              />
+              <small
+                class="vf-field-error"
+                th:if="${fileError != null}"
+                th:text="${fileError}"
+                role="alert"
+              ></small>
+              <p class="vf-form-note">
+                A prévia vale por 24 horas e fica disponível somente para sua conta nesta filial.
+                Limite de 20 prévias em 24 horas.
+              </p>
+              <button class="btn btn-primary" data-submit>Validar e gerar prévia</button>
+            </form>
+          </section>
+        </div>
+        <section class="vf-card vf-form-card mt-4">
+          <h2>Suas importações recentes</h2>
+          <p class="vf-muted vf-small">Últimos 10 envios nesta filial.</p>
+          <div class="vf-empty vf-empty-small" th:if="${jobs.isEmpty()}">
+            <p>Nenhuma importação enviada.</p>
+          </div>
+          <div class="table-responsive" th:if="${!jobs.isEmpty()}">
+            <table class="table vf-table align-middle">
+              <thead>
+                <tr>
+                  <th>Arquivo</th>
+                  <th>Data</th>
+                  <th>Produtos</th>
+                  <th>Situação</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="job : ${jobs}">
+                  <td th:text="${job.filename}"></td>
+                  <td
+                    th:text="${#temporals.format(job.createdAt.atZone(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM/yyyy HH:mm')}"
+                  ></td>
+                  <td th:text="${job.rowCount}"></td>
+                  <td>
+                    <span
+                      class="vf-role-tag"
+                      th:text="${job.status == 'COMPLETED' ? 'Concluída' : (job.status == 'REJECTED' ? 'Com erros' : 'Aguardando confirmação')}"
+                    ></span>
+                  </td>
+                  <td><a th:href="@{/produtos/importacoes/{id}(id=${job.id})}">Ver prévia</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

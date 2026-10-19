@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Detalhes do produto')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Produtos / Detalhes')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <a class="vf-back-link" th:href="@{/produtos}">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          Voltar ao catálogo
+        </a>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow" th:text="${product.sku}"></span>
+            <h1 th:text="${product.name}"></h1>
+            <p th:text="${product.category ?: 'Sem categoria'}"></p>
+          </div>
+          <div class="vf-catalog-actions">
+            <a
+              class="btn btn-outline-primary"
+              th:if="${canReadStock}"
+              th:href="@{/estoque/{id}(id=${product.id})}"
+            >
+              <i class="bi bi-boxes" aria-hidden="true"></i>
+              Ver estoque
+            </a>
+            <a
+              class="btn btn-primary"
+              th:if="${canWriteProducts}"
+              th:href="@{/produtos/{id}/editar(id=${product.id})}"
+            >
+              Editar cadastro
+            </a>
+          </div>
+        </div>
+        <div class="vf-product-grid">
+          <section class="vf-card vf-form-card">
+            <div class="vf-product-photo">
+              <img
+                th:if="${product.image}"
+                th:src="@{/produtos/{id}/imagem(id=${product.id})}"
+                th:alt="${product.name}"
+              />
+              <div th:unless="${product.image}" class="vf-empty">
+                <i class="bi bi-image" aria-hidden="true"></i>
+                <p>Produto sem imagem</p>
+              </div>
+            </div>
+            <dl class="vf-product-facts">
+              <div>
+                <dt>Unidade</dt>
+                <dd th:text="${product.unit == 'KG' ? 'Quilograma (KG)' : 'Unidade (UN)'}"></dd>
+              </div>
+              <div>
+                <dt>Situação</dt>
+                <dd th:text="${product.active ? 'Ativo' : 'Inativo'}"></dd>
+              </div>
+              <div>
+                <dt>Código de barras</dt>
+                <dd th:text="${product.barcode ?: 'Não informado'}"></dd>
+              </div>
+              <div>
+                <dt>NCM</dt>
+                <dd th:text="${product.ncm ?: 'Não informado'}"></dd>
+              </div>
+              <div>
+                <dt>CEST</dt>
+                <dd th:text="${product.cest ?: 'Não informado'}"></dd>
+              </div>
+            </dl>
+            <form
+              th:if="${canWriteProducts}"
+              th:action="@{/produtos/{id}/imagem(id=${product.id})}"
+              method="post"
+              enctype="multipart/form-data"
+            >
+              <label class="form-label" for="image">Imagem do produto</label>
+              <input
+                class="form-control"
+                type="file"
+                id="image"
+                name="image"
+                accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+                required
+              />
+              <small class="d-block vf-muted mt-2">
+                PNG/JPEG de até 5 MB; até 4096 px por lado e 8 milhões de pixels. A imagem será
+                reduzida para até 1200 px.
+              </small>
+              <small
+                class="vf-field-error"
+                th:if="${imageError != null}"
+                th:text="${imageError}"
+                role="alert"
+              ></small>
+              <button class="btn btn-outline-primary mt-3" data-submit>Salvar imagem</button>
+            </form>
+            <form
+              th:if="${canWriteProducts and product.image}"
+              th:action="@{/produtos/{id}/imagem/remover(id=${product.id})}"
+              method="post"
+              data-confirm="Remover a imagem deste produto em todas as filiais?"
+            >
+              <button class="btn btn-link mt-2">Remover imagem</button>
+            </form>
+          </section>
+          <div>
+            <section class="vf-card vf-form-card">
+              <span class="vf-eyebrow">PREÇO NESTA FILIAL</span>
+              <h2 th:text="${activeStore.name}"></h2>
+              <p class="vf-muted">Alterar o preço aqui mantém os valores das outras filiais.</p>
+              <p
+                class="vf-product-price"
+                th:if="${product.price != null}"
+                th:text="${'R$ ' + #numbers.formatDecimal(product.price, 1, 'POINT', 2, 'COMMA')}"
+              ></p>
+              <p th:if="${product.price == null}" class="vf-muted">Preço ainda não definido.</p>
+              <p
+                th:if="${product.price != null and !product.priceActive}"
+                class="alert alert-warning"
+              >
+                O preço está inativo nesta filial.
+              </p>
+              <form
+                th:if="${canChangePrice}"
+                th:action="@{/produtos/{id}/preco(id=${product.id})}"
+                th:object="${priceForm}"
+                method="post"
+              >
+                <input type="hidden" th:field="*{version}" />
+                <div class="vf-label-row">
+                  <label class="form-label" for="amount">Preço de venda (R$)</label>
+                  <details
+                    th:replace="~{fragments/help :: help('preço de venda', 'Valor por UN ou por KG nesta filial. Exemplo: 19,90. Não use separador de milhar. Um produto só fica disponível na busca de venda quando possui preço ativo.')}"
+                  ></details>
+                </div>
+                <input
+                  class="form-control"
+                  th:field="*{amount}"
+                  inputmode="decimal"
+                  maxlength="20"
+                  required
+                  placeholder="19,90"
+                />
+                <small
+                  th:if="${priceError != null}"
+                  class="vf-field-error"
+                  th:text="${priceError}"
+                  role="alert"
+                ></small>
+                <div class="form-check my-3">
+                  <input type="checkbox" class="form-check-input" th:field="*{active}" />
+                  <label class="form-check-label" for="active">Preço ativo nesta filial</label>
+                </div>
+                <button class="btn btn-primary" data-submit>Salvar preço</button>
+              </form>
+            </section>
+            <section class="vf-card vf-form-card mt-4" th:if="${canReadStock}">
+              <h2>Estoque nesta filial</h2>
+              <p class="vf-product-price">
+                <span
+                  th:text="${#numbers.formatDecimal(product.quantity, 1, 'POINT', product.unit == 'KG' ? 3 : 0, 'COMMA')}"
+                ></span>
+                <small th:text="${product.unit}"></small>
+              </p>
+              <p
+                class="vf-muted"
+                th:if="${product.minimum != null}"
+                th:text="${'Mínimo: ' + #numbers.formatDecimal(product.minimum, 1, 'POINT', product.unit == 'KG' ? 3 : 0, 'COMMA') + ' ' + product.unit}"
+              ></p>
+              <a class="btn btn-outline-primary" th:href="@{/estoque/{id}(id=${product.id})}">
+                Consultar e movimentar
+              </a>
+            </section>
+            <section class="vf-card vf-form-card mt-4">
+              <h2>Histórico de preços</h2>
+              <p class="vf-muted vf-small">Últimas 10 alterações nesta filial.</p>
+              <div th:if="${priceHistory.isEmpty()}" class="vf-muted">
+                Nenhuma alteração registrada.
+              </div>
+              <ul class="vf-price-history">
+                <li th:each="event : ${priceHistory}">
+                  <span>
+                    <strong
+                      th:text="${'R$ ' + #numbers.formatDecimal(event.amount, 1, 'POINT', 2, 'COMMA')}"
+                    ></strong>
+                    <small th:text="${event.active ? 'ativo' : 'inativo'}"></small>
+                  </span>
+                  <span class="vf-muted vf-small" th:text="${event.actor}"></span>
+                  <time
+                    class="vf-muted vf-small"
+                    th:text="${#dates.format(event.created_at, 'dd/MM/yyyy HH:mm')}"
+                  ></time>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

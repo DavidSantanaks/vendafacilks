@@ -1,6 +1,6 @@
 # vendaFacil — sistema e infraestrutura no Ubuntu Server 26
 
-**Referência:** código da versão `0.1.0-SNAPSHOT`, consultado em 18/10/2026.
+**Referência:** código da versão `0.2.0-SNAPSHOT`, atualizado em 19/10/2026.
 
 **Sistema operacional deste procedimento:** Ubuntu Server **26.04 LTS**, 64 bits.
 
@@ -8,7 +8,7 @@
 
 Este documento descreve o que está implementado, como instalar a infraestrutura, publicar os portais com HTTPS e manter os dados. Os comandos Linux são para **Bash no servidor Ubuntu**, salvo os blocos identificados como PowerShell.
 
-O projeto entrega a fundação de acesso de um PDV multiempresa e multifilial. **Catálogo, estoque, vendas, caixa e emissão fiscal ainda não estão implementados.** Colocar os containers no servidor não transforma esta entrega na V1 comercial completa.
+O projeto entrega a fundação de acesso, catálogo, preços e estoque de um PDV multiempresa e multifilial. **Vendas, caixa e emissão fiscal ainda não estão implementados.** Colocar os containers no servidor não transforma esta entrega na V1 comercial completa.
 
 O procedimento foi preparado a partir dos arquivos do repositório e de documentação oficial. **A instalação em um Ubuntu Server 26.04 real, com domínio e SMTP de produção, ainda precisa ser executada e homologada.** Os exemplos de domínio, IP e e-mail devem ser substituídos pelos seus dados.
 
@@ -90,7 +90,9 @@ O botão **Abrir portal** no card da empresa abre seu endereço em outra aba. O 
 
 ### 2.2. Próximas entregas
 
-Ainda não há produtos, preços por filial, importação CSV/XLSX comercial, estoque, PDV, vendas, caixa, cálculo de descontos, cancelamentos/devoluções, relatórios comerciais, recibos ou emissão de NF-e/NFC-e.
+A Etapa 2 acrescentou produtos/categorias, preços por filial com histórico, estoque/movimentos/mínimo por filial, imagens privadas PNG/JPEG e importação CSV/XLSX com prévia, relatório e confirmação integral. Consulte o [manual de catálogo e estoque](docs/runbooks/catalog-and-stock.md) para operar esses módulos. Imagens e dados de importação ficam no PostgreSQL e já participam do backup lógico descrito neste guia; não há volume adicional de uploads.
+
+Ainda não há PDV, vendas, caixa, cálculo de descontos comerciais, cancelamentos/devoluções, relatórios de vendas, recibos ou emissão de NF-e/NFC-e.
 
 Também estão pendentes convites com verificação de e-mail, alteração verificada de e-mail, edição das definições dos perfis, MFA, upload de logotipo, habilitação de módulos, cobrança recorrente da plataforma e ampliação de paginação nas demais telas.
 
@@ -127,9 +129,12 @@ Com Docker, o servidor **não precisa instalar Java, Maven, Node.js, PostgreSQL 
 ```text
 src/main/java/br/com/vendafacil/
   administration/       gestão SaaS e provisionamento de empresas
+  catalog/              categorias, produtos, preços e imagens
+    importing/          prévia e confirmação de CSV/XLSX
   identity/             identidades, vínculos, perfis e concessões
     recovery/           tokens e envio de recuperação de senha
   store/                filiais e seleção de unidade
+  inventory/            saldos, movimentos, mínimos e aprovação de exceções
   tenant/               empresas, contexto e resolução de host
   shared/
     audit/              auditoria
@@ -155,22 +160,27 @@ Controllers delegam regras a serviços; serviços e repositórios aplicam o cont
 
 ### 3.3. Modelo de dados atual
 
-| Tabela                   | Conteúdo                                                          |
-| ------------------------ | ----------------------------------------------------------------- |
-| `tenants`                | Empresas, slug, nome e situação                                   |
-| `stores`                 | Filiais associadas à empresa                                      |
-| `users`                  | Identidade global, hash de senha, ativação e versão da credencial |
-| `memberships`            | Vínculo entre identidade e empresa                                |
-| `permissions`            | Catálogo de permissões                                            |
-| `roles`                  | Perfis por empresa e limite de desconto cadastrado                |
-| `role_permissions`       | Permissões de cada perfil                                         |
-| `membership_store_roles` | Concessões de perfil por filial e sua ativação                    |
-| `tenant_policies`        | Políticas iniciais para os próximos módulos                       |
-| `password_reset_tokens`  | Hash do token, escopo, validade e utilização                      |
-| `audit_logs`             | Eventos de auditoria                                              |
-| `flyway_schema_history`  | Histórico técnico de migrations                                   |
+| Tabela                                            | Conteúdo                                                          |
+| ------------------------------------------------- | ----------------------------------------------------------------- |
+| `tenants`                                         | Empresas, slug, nome e situação                                   |
+| `stores`                                          | Filiais associadas à empresa                                      |
+| `users`                                           | Identidade global, hash de senha, ativação e versão da credencial |
+| `memberships`                                     | Vínculo entre identidade e empresa                                |
+| `permissions`                                     | Catálogo de permissões                                            |
+| `roles`                                           | Perfis por empresa e limite de desconto cadastrado                |
+| `role_permissions`                                | Permissões de cada perfil                                         |
+| `membership_store_roles`                          | Concessões de perfil por filial e sua ativação                    |
+| `tenant_policies`                                 | Políticas iniciais para os próximos módulos                       |
+| `categories`, `products`                          | Categorias e catálogo compartilhado pela empresa                  |
+| `product_images`                                  | Imagens PNG normalizadas e privadas                               |
+| `store_prices`, `store_price_history`             | Preço da filial e histórico imutável                              |
+| `stock_balances`, `stock_movements`               | Saldo/mínimo por filial e livro de movimentações                  |
+| `import_jobs`, `import_rows`, `import_row_errors` | Prévias de importação, dados e erros por linha                    |
+| `password_reset_tokens`                           | Hash do token, escopo, validade e utilização                      |
+| `audit_logs`                                      | Eventos de auditoria                                              |
+| `flyway_schema_history`                           | Histórico técnico de migrations                                   |
 
-As migrations atuais são V1 e V2. O Hibernate valida o schema; não é usado `ddl-auto=update`. Migrations aplicadas não devem ser reescritas: alterações de banco devem entrar em nova migration.
+As migrations atuais são V1, V2 e V3. A V3 inclui categorias, produtos, imagens, preços/histórico, saldos, movimentos, lotes de importação, linhas e erros, com referências compostas por tenant/filial. O Hibernate valida o schema; não é usado `ddl-auto=update`. Migrations aplicadas não devem ser reescritas: alterações de banco devem entrar em nova migration.
 
 O isolamento usa filtros de aplicação, autorização nos serviços e FKs compostas. **PostgreSQL Row Level Security não está implementado.** A trigger de auditoria impede alterações usuais de linhas, mas não substitui segregação de privilégios ou proteção contra um administrador do banco.
 
@@ -1006,6 +1016,9 @@ FROM flyway_schema_history ORDER BY installed_rank;
 SELECT 'tenants' AS tabela, count(*) AS total FROM tenants
 UNION ALL SELECT 'stores', count(*) FROM stores
 UNION ALL SELECT 'users', count(*) FROM users
+UNION ALL SELECT 'products', count(*) FROM products
+UNION ALL SELECT 'product_images', count(*) FROM product_images
+UNION ALL SELECT 'stock_movements', count(*) FROM stock_movements
 UNION ALL SELECT 'audit_logs', count(*) FROM audit_logs;
 
 SELECT conname, convalidated FROM pg_constraint
@@ -1319,7 +1332,7 @@ Antes de compartilhar logs, remova dados pessoais e eventuais segredos. Não pub
 
 | Tema                     | Situação atual                                                                                 |
 | ------------------------ | ---------------------------------------------------------------------------------------------- |
-| Escopo funcional         | Fundação de acesso; os módulos comerciais/fiscais estão pendentes                              |
+| Escopo funcional         | Acesso, catálogo, preços e estoque; vendas, caixa e fiscal estão pendentes                     |
 | Alta disponibilidade     | Um host e uma instância; sem failover automático                                               |
 | Sessão e rate limit      | Em memória; exigem evolução para múltiplas instâncias                                          |
 | E-mails                  | Envio assíncrono sem persistência/retry automático                                             |

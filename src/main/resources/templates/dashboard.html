@@ -76,6 +76,26 @@
               <span class="vf-muted vf-small">Acessos rápidos</span>
             </div>
             <div class="vf-shortcuts">
+              <a class="vf-card vf-shortcut" th:if="${canReadProducts}" th:href="@{/produtos}">
+                <span class="vf-shortcut-icon">
+                  <i class="bi bi-box-seam" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <h3>Catálogo de produtos</h3>
+                  <p>Cadastros e preços da sua filial.</p>
+                </div>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </a>
+              <a class="vf-card vf-shortcut" th:if="${canReadStock}" th:href="@{/estoque}">
+                <span class="vf-shortcut-icon vf-icon-purple">
+                  <i class="bi bi-boxes" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <h3>Estoque da filial</h3>
+                  <p>Entradas, ajustes e reposição.</p>
+                </div>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </a>
               <a class="vf-card vf-shortcut" th:href="@{/filiais}">
                 <span class="vf-shortcut-icon"><i class="bi bi-shop" aria-hidden="true"></i></span>
                 <div>
@@ -119,11 +139,7 @@
                   <i class="bi bi-check2-circle" aria-hidden="true"></i>
                 </span>
                 <div>
-                  <strong
-                    th:text="${event.action == 'STORE_SELECTED' ? 'Filial selecionada para trabalhar' : (event.action == 'USER_CREATED' ? 'Novo acesso de usuário cadastrado' : 'Informações da filial atualizadas')}"
-                  >
-                    Acesso registrado
-                  </strong>
+                  <strong th:text="${@auditLabels.label(event.action)}">Acesso registrado</strong>
                   <small>Operação registrada com segurança</small>
                 </div>
                 <time
@@ -183,7 +199,8 @@
             </a>
             <div class="vf-stage-note">
               <i class="bi bi-info-circle" aria-hidden="true"></i>
-              Catálogo, vendas, caixa e fiscal fazem parte dos próximos incrementos.
+              Produtos e estoque já estão disponíveis conforme seu perfil. Vendas, caixa e fiscal
+              serão adicionados nos próximos incrementos.
             </div>
           </aside>
         </div>

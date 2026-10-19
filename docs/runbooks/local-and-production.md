@@ -2,6 +2,8 @@
 
 Para a instalação completa no Ubuntu Server 26.04 LTS, consulte o [guia do sistema e da infraestrutura](../../GUIA-SISTEMA-UBUNTU-SERVER-26.md), que detalha DNS, Docker, HTTPS, SMTP, primeiro administrador, backup e restauração.
 
+Para operar produtos, imagens, importação, preços e estoque da versão 0.2.0, consulte o [manual da Etapa 2](catalog-and-stock.md). A migration V3 é aditiva e as imagens ficam no banco, já incluídas no dump PostgreSQL; não há volume novo de uploads.
+
 ## Diagnóstico local
 
 Se `docker compose up -d --build` falhar com `docker-credential-desktop: executable file not found in %PATH%`, execute `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/docker-up.ps1`. O iniciador adiciona a pasta dos executáveis do Docker Desktop ao PATH do processo antes de chamar o Compose. Isso resolve terminais que não receberam o caminho da instalação. Se preferir usar os comandos Docker diretamente, acrescente a pasta `resources/bin` da instalação ao `$env:Path` do terminal atual ou abra um terminal com o PATH atualizado.

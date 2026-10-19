@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Movimentações de estoque')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Estoque / Movimentações')}"></header>
+      <main id="conteudo" class="vf-content">
+        <a class="vf-back-link" th:href="@{/estoque}">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          Voltar ao estoque
+        </a>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">HISTÓRICO DA FILIAL</span>
+            <h1>Movimentações de estoque</h1>
+            <p>Entradas, ajustes e aprovações, com motivo e responsável.</p>
+          </div>
+        </div>
+        <section class="vf-card vf-form-card">
+          <div th:fragment="movementTable">
+            <div class="vf-empty vf-empty-small" th:if="${movements.items.isEmpty()}">
+              <i class="bi bi-clock-history" aria-hidden="true"></i>
+              <p>Nenhuma movimentação registrada.</p>
+            </div>
+            <div class="table-responsive" th:if="${!movements.items.isEmpty()}">
+              <table class="table vf-table align-middle">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Produto e motivo</th>
+                    <th>Movimento</th>
+                    <th>Saldo após</th>
+                    <th>Responsável</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:each="movement : ${movements.items}">
+                    <td
+                      class="text-nowrap"
+                      th:text="${#temporals.format(movement.createdAt.atZone(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM/yyyy HH:mm')}"
+                    ></td>
+                    <td>
+                      <strong th:text="${movement.product}"></strong>
+                      <small class="d-block vf-muted" th:text="${movement.reason}"></small>
+                      <small
+                        class="d-block vf-stock-alert"
+                        th:if="${movement.approver != null}"
+                        th:text="${'Exceção aprovada por ' + movement.approver + ': ' + movement.approvalReason}"
+                      ></small>
+                    </td>
+                    <td>
+                      <span th:text="${movement.type == 'ENTRY' ? 'Entrada' : 'Ajuste'}"></span>
+                      <strong
+                        class="d-block"
+                        th:text="${#numbers.formatDecimal(movement.quantity, 1, 'POINT', movement.unit == 'KG' ? 3 : 0, 'COMMA') + ' ' + movement.unit}"
+                      ></strong>
+                    </td>
+                    <td
+                      th:text="${#numbers.formatDecimal(movement.balanceAfter, 1, 'POINT', movement.unit == 'KG' ? 3 : 0, 'COMMA') + ' ' + movement.unit}"
+                    ></td>
+                    <td th:text="${movement.actor}"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <nav
+          class="vf-pagination"
+          aria-label="Páginas de movimentações"
+          th:if="${movements.pages() > 1}"
+        >
+          <a
+            th:if="${movements.hasPrevious()}"
+            th:href="@{/estoque/movimentacoes(product=${productId},page=${movements.number - 1})}"
+          >
+            Anterior
+          </a>
+          <span th:text="${'Página ' + (movements.number + 1) + ' de ' + movements.pages()}"></span>
+          <a
+            th:if="${movements.hasNext()}"
+            th:href="@{/estoque/movimentacoes(product=${productId},page=${movements.number + 1})}"
+          >
+            Próxima
+          </a>
+        </nav>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

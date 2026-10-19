@@ -2,7 +2,7 @@
 
 PDV web multiempresa e multifilial em **Java 25, Spring Boot 4.0.8, PostgreSQL, Spring MVC e Thymeleaf**, com Bootstrap 5 e JavaScript puro.
 
-Este repositório implementa o **primeiro incremento verificável definido na seção 23 do [SDD-VendaFacilKs.md](SDD-VendaFacilKs.md)**: duas empresas acessam seus subdomínios, autenticam usuários e selecionam somente as filiais autorizadas, sem compartilhar dados ou permissões. A preparação da Etapa 0 e a fundação de acesso da Etapa 1 estão implementadas. **Não é a V1 comercial completa.**
+Este repositório implementa a fundação multiempresa e a **Etapa 2 do [SDD-VendaFacilKs.md](SDD-VendaFacilKs.md)**: catálogo compartilhado pela empresa, produtos UN/KG, imagens validadas, preços e estoque por filial e importação CSV/XLSX com prévia. A versão atual é `0.2.0-SNAPSHOT`. **PDV, vendas, caixa e fiscal pertencem às próximas etapas; esta ainda não é a V1 comercial completa.**
 
 ## Executar com Docker
 
@@ -102,8 +102,26 @@ Spotless/Google Java Format verifica Java e whitespace de SQL/YAML; Prettier for
 - Auditoria protegida contra alterações, IDs de correlação, respostas de erro e healthcheck.
 - Interface responsiva com ajuda acessível por toque e teclado, navegação mobile e estados vazios/erros.
 - Flyway com FKs compostas que impedem vínculos entre empresas diferentes.
+- Catálogo paginado com busca por nome/SKU/código de barras, categorias, ativação e atributos NCM/CEST opcionais.
+- Preços independentes por filial, ativação e histórico imutável de alterações.
+- Estoque por filial, unidades UN/KG, mínimo/reposição, entradas e ajustes com histórico imutável.
+- Concorrência e idempotência nas movimentações; saldo negativo exige outra pessoa autorizada, senha e justificativa.
+- Imagens PNG/JPEG validadas, normalizadas e privadas, incluídas no backup PostgreSQL.
+- Importação CSV/XLSX com modelos versão 1, prévia, erros por linha, relatório CSV e confirmação atômica/idempotente.
 
-Catálogo, importação, uploads, estoque, PDV, caixa, vendas, descontos, devoluções, relatórios comerciais e integração fiscal pertencem às próximas etapas do SDD. Não há emissão fiscal nem autorização simulada. Convites verificados, criação/edição de definições de perfis, MFA, logo por upload e habilitação de módulos ainda estão pendentes. A atribuição de perfis, bloqueio/restauração de acessos e recuperação de senha já estão disponíveis. Veja [o estado de implementação](docs/implementation-status.md).
+PDV, caixa, vendas, descontos comerciais, devoluções, relatórios de vendas e integração fiscal pertencem às próximas etapas do SDD. Não há emissão fiscal nem autorização simulada. Convites verificados, criação/edição de definições de perfis, MFA, logo por upload e habilitação de módulos ainda estão pendentes. Veja [o estado de implementação](docs/implementation-status.md).
+
+## Produtos, preços, estoque e importação
+
+Selecione a filial e abra **Produtos**. Cadastre o produto uma vez para a empresa e defina seu preço na página do produto. Troque de filial para informar outro preço. A inativação preserva o histórico; a busca de venda só retorna produtos ativos com preço ativo na filial atual.
+
+Em **Estoque**, registre entradas ou ajustes como variação do saldo: `+2` é informado como `2` e retira-se com `-2`. UN aceita inteiros; KG aceita até três casas, como `1,250`. Não use separador de milhar. Cada operação tem uma identificação que impede duplicidade no reenvio. Saldo negativo exige credenciais de **outra pessoa**, autorizada nessa filial, e justificativa. Estoque mínimo gera um filtro de reposição.
+
+Em **Importar produtos**, baixe o modelo CSV ou XLSX, gere a prévia e confira o relatório antes de confirmar. O lote importa somente produtos novos; SKU/código repetido é erro, sem atualização silenciosa. Preços e estoque opcional pertencem à filial ativa e exigem suas respectivas permissões. Limites: 5 MB, 1.000 produtos, 20 prévias por pessoa em 24 horas e validade de 24 horas para confirmação. Um erro impede a gravação de todo o lote.
+
+As imagens aceitam PNG/JPEG de até 5 MB, máximo de 4096 pixels por lado e 8 milhões de pixels. São regravadas em PNG de até 1200 pixels por lado e 3 MB e armazenadas no banco. Não é necessário criar um volume de uploads.
+
+O Compose aplica automaticamente a migration **V3**, preservando os dados existentes. Atualize a imagem com `docker compose up -d --build`. Consulte [o manual da Etapa 2](docs/runbooks/catalog-and-stock.md) para permissões, formatos e operação.
 
 ## Recuperar senha e administrar os portais
 
@@ -137,12 +155,14 @@ Para instalar em um servidor, consulte o [guia completo do sistema e da infraest
 
 ## Estrutura e decisões
 
-O código está organizado por funcionalidade: `tenant`, `identity`, `store`, `administration` e `shared`. Controllers chamam serviços; o acesso a dados fica nos serviços/repositórios. Os módulos comerciais serão adicionados nas entregas correspondentes, evitando classes vazias que aparentem funcionalidades concluídas.
+O código está organizado por funcionalidade: `tenant`, `identity`, `store`, `administration`, `catalog`, `catalog/importing`, `inventory` e `shared`. Controllers chamam serviços; os módulos de catálogo/estoque usam JDBC parametrizado na mesma transação de banco que a auditoria JPA. Os próximos módulos comerciais serão adicionados nas entregas correspondentes.
 
 - [Arquitetura e limites de confiança](docs/architecture/foundation.md)
 - [Contratos HTTP implementados](docs/api/foundation.md)
 - [ADRs](docs/decisions/0001-foundation.md)
 - [Verificação desta entrega](docs/verification.md)
 - [Debug e operação](docs/runbooks/local-and-production.md)
+- [Catálogo, importação e estoque](docs/runbooks/catalog-and-stock.md)
+- [Decisão de arquitetura da Etapa 2](docs/decisions/0003-catalog-and-stock.md)
 
 O diretório `.tools` contém apenas ferramentas portáteis usadas nesta máquina durante a implementação e está ignorado pelo Git. `.local` contém caches e bancos temporários. O projeto distribuível não depende desses diretórios.

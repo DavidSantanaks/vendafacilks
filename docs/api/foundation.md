@@ -32,4 +32,4 @@ Erros produzidos por serviços e autenticação em `/api/` usam Problem Details:
 
 CSRF de formulários é inserido pelo Thymeleaf. O layout disponibiliza token/header em metatags; `static/js/shared/http.js` fornece `requestJson` para os módulos seguintes, com CSRF e tratamento de expiração. Não há endpoint de venda/caixa/fiscal nesta entrega.
 
-A gestão SaaS de usuários possui paginação de servidor. As demais listas ainda são voltadas ao conjunto pequeno de filiais/equipe do piloto; adicionar paginação antes de ampliar essas operações.
+A gestão SaaS de usuários possui paginação de servidor. Filiais/equipe ainda são voltadas ao conjunto pequeno do piloto. A Etapa 2 adiciona paginação de produtos, saldos, movimentos e linhas de importação, conforme [os contratos de catálogo e estoque](catalog-and-stock.md).

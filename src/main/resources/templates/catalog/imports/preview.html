@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Prévia da importação')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Produtos / Prévia')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <a class="vf-back-link" th:href="@{/produtos/importacoes}">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          Voltar às importações
+        </a>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">CONFIRA ANTES DE CADASTRAR</span>
+            <h1>Prévia da importação</h1>
+            <p th:text="${preview.job.filename}"></p>
+          </div>
+          <a
+            class="btn btn-outline-primary"
+            th:href="@{/produtos/importacoes/{id}/relatorio(id=${preview.job.id})}"
+          >
+            <i class="bi bi-download" aria-hidden="true"></i>
+            Baixar relatório
+          </a>
+        </div>
+        <section class="vf-card vf-form-card mb-4">
+          <div class="vf-import-summary">
+            <div>
+              <strong th:text="${preview.job.rowCount}"></strong>
+              <span>produtos no arquivo</span>
+            </div>
+            <div>
+              <strong th:text="${preview.job.errorCount}"></strong>
+              <span>erros encontrados</span>
+            </div>
+            <div>
+              <strong th:text="${activeStore.name}"></strong>
+              <span>filial dos preços e do estoque</span>
+            </div>
+          </div>
+          <p class="alert alert-success mt-4" th:if="${preview.job.status == 'COMPLETED'}">
+            Importação concluída. Reenviar a confirmação não cadastra os produtos novamente.
+          </p>
+          <p class="alert alert-warning mt-4" th:if="${preview.job.status == 'REJECTED'}">
+            Nenhum produto foi importado. Corrija os erros do relatório e envie um novo arquivo.
+          </p>
+          <p
+            class="alert alert-warning mt-4"
+            th:if="${preview.job.status == 'PREVIEW' and !preview.job.canConfirm()}"
+          >
+            A prévia expirou. Envie o arquivo novamente para validar os dados atuais.
+          </p>
+          <form
+            th:if="${preview.job.canConfirm()}"
+            th:action="@{/produtos/importacoes/{id}/confirmar(id=${preview.job.id})}"
+            method="post"
+            data-confirm="Confirma o cadastro de todos os produtos e dos valores desta prévia na filial atual?"
+          >
+            <p class="vf-muted mt-4">
+              O catálogo será revalidado antes de salvar. Se houver conflito, nenhum produto deste
+              lote será cadastrado.
+            </p>
+            <button class="btn btn-primary" data-submit>Confirmar importação</button>
+          </form>
+          <a
+            th:if="${preview.job.status == 'COMPLETED'}"
+            class="btn btn-primary mt-3"
+            th:href="@{/produtos}"
+          >
+            Ir para o catálogo
+          </a>
+        </section>
+        <section class="vf-card">
+          <div class="table-responsive">
+            <table class="table vf-table align-middle">
+              <thead>
+                <tr>
+                  <th>Linha</th>
+                  <th>SKU e produto</th>
+                  <th>Unidade</th>
+                  <th>Preço</th>
+                  <th>Estoque inicial</th>
+                  <th>Validação</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="row : ${preview.rows.items}">
+                  <td th:text="${row.number}"></td>
+                  <td>
+                    <strong th:text="${row.name}"></strong>
+                    <small class="d-block vf-muted" th:text="${row.sku}"></small>
+                    <details class="vf-import-details">
+                      <summary>Dados adicionais</summary>
+                      <dl>
+                        <dt>Código de barras</dt>
+                        <dd th:text="${row.barcode.isEmpty() ? 'Não informado' : row.barcode}"></dd>
+                        <dt>Categoria</dt>
+                        <dd
+                          th:text="${row.category.isEmpty() ? 'Sem categoria' : row.category}"
+                        ></dd>
+                        <dt>NCM</dt>
+                        <dd th:text="${row.ncm.isEmpty() ? 'Não informado' : row.ncm}"></dd>
+                        <dt>CEST</dt>
+                        <dd th:text="${row.cest.isEmpty() ? 'Não informado' : row.cest}"></dd>
+                      </dl>
+                    </details>
+                  </td>
+                  <td th:text="${row.unit}"></td>
+                  <td th:text="${row.price.isEmpty() ? 'Não informado' : row.price}"></td>
+                  <td>
+                    <span
+                      th:text="${row.quantity.isEmpty() ? 'Não informado' : row.quantity}"
+                    ></span>
+                    <small
+                      class="d-block vf-muted"
+                      th:text="${'Mínimo: ' + (row.minimum.isEmpty() ? 'Não informado' : row.minimum)}"
+                    ></small>
+                  </td>
+                  <td>
+                    <span th:if="${row.errors.isEmpty()}" class="vf-role-tag">Validado</span>
+                    <ul th:unless="${row.errors.isEmpty()}" class="vf-import-errors">
+                      <li th:each="error : ${row.errors}" th:text="${error}"></li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <nav
+          class="vf-pagination"
+          aria-label="Páginas da prévia"
+          th:if="${preview.rows.pages() > 1}"
+        >
+          <a
+            th:if="${preview.rows.hasPrevious()}"
+            th:href="@{/produtos/importacoes/{id}(id=${preview.job.id},page=${preview.rows.number - 1})}"
+          >
+            Anterior
+          </a>
+          <span
+            th:text="${'Página ' + (preview.rows.number + 1) + ' de ' + preview.rows.pages()}"
+          ></span>
+          <a
+            th:if="${preview.rows.hasNext()}"
+            th:href="@{/produtos/importacoes/{id}(id=${preview.job.id},page=${preview.rows.number + 1})}"
+          >
+            Próxima
+          </a>
+        </nav>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>

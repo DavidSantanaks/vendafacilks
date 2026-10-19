@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.ModelAndView;
 
 @ControllerAdvice
@@ -51,6 +52,14 @@ public class WebExceptionHandler {
     }
     return new ModelAndView(
         "error/error", Map.of("status", status.value(), "message", message), status);
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public Object uploadTooLarge(HttpServletRequest request) {
+    return error(
+        HttpStatus.PAYLOAD_TOO_LARGE,
+        "O arquivo excede o limite de 5 MB. Reduza o tamanho e tente novamente.",
+        request);
   }
 
   private ResponseEntity<ProblemDetail> problem(

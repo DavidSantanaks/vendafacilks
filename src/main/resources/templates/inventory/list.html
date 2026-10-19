@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head('Estoque')}"></head>
+  <body>
+    <a th:replace="~{fragments/layout :: skip}"></a>
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <div class="vf-shell">
+      <header th:replace="~{fragments/layout :: topbar('Estoque')}"></header>
+      <main id="conteudo" class="vf-content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="vf-page-heading">
+          <div>
+            <span class="vf-eyebrow">ACOMPANHE CADA MOVIMENTO</span>
+            <h1>Estoque da filial</h1>
+            <p th:text="${activeStore.name + ' · Saldos independentes das outras unidades.'}"></p>
+          </div>
+          <a class="btn btn-outline-primary" th:href="@{/estoque/movimentacoes}">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            Movimentações
+          </a>
+        </div>
+        <form class="vf-card vf-catalog-filters" th:action="@{/estoque}" method="get" role="search">
+          <div class="vf-filter-search">
+            <label class="form-label" for="q">Buscar no estoque</label>
+            <input
+              class="form-control"
+              id="q"
+              name="q"
+              th:value="${query}"
+              placeholder="Nome, SKU ou código de barras"
+              maxlength="100"
+            />
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              id="low"
+              name="low"
+              type="checkbox"
+              value="true"
+              th:checked="${low}"
+            />
+            <label class="form-check-label" for="low">Somente no mínimo ou abaixo</label>
+          </div>
+          <button class="btn btn-primary">Buscar</button>
+        </form>
+        <div class="vf-section-heading">
+          <h2>
+            <span th:text="${products.total}"></span>
+            produtos
+          </h2>
+          <span class="vf-muted vf-small">Entradas e ajustes preservam o histórico.</span>
+        </div>
+        <section class="vf-card">
+          <div class="table-responsive" th:if="${!products.items.isEmpty()}">
+            <table class="table vf-table align-middle">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Saldo</th>
+                  <th>Mínimo</th>
+                  <th>Situação</th>
+                  <th><span class="visually-hidden">Ações</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="product : ${products.items}">
+                  <td>
+                    <strong th:text="${product.name}"></strong>
+                    <small class="d-block vf-muted" th:text="${product.sku}"></small>
+                  </td>
+                  <td>
+                    <strong
+                      th:text="${#numbers.formatDecimal(product.quantity, 1, 'POINT', product.unit == 'KG' ? 3 : 0, 'COMMA')}"
+                    ></strong>
+                    <span th:text="${product.unit}"></span>
+                  </td>
+                  <td
+                    th:text="${product.minimum == null ? 'Não definido' : #numbers.formatDecimal(product.minimum, 1, 'POINT', product.unit == 'KG' ? 3 : 0, 'COMMA')}"
+                  ></td>
+                  <td>
+                    <span th:if="${!product.active}" class="vf-role-tag">Produto inativo</span>
+                    <span
+                      th:if="${product.minimum != null and product.quantity.compareTo(product.minimum) <= 0}"
+                      class="vf-stock-alert"
+                    >
+                      <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                      Repor estoque
+                    </span>
+                    <span
+                      th:if="${product.active and (product.minimum == null or product.quantity.compareTo(product.minimum) > 0)}"
+                      class="vf-muted"
+                    >
+                      Disponível
+                    </span>
+                  </td>
+                  <td>
+                    <a
+                      th:href="@{/estoque/{id}(id=${product.id})}"
+                      th:attr="aria-label=${'Consultar estoque de ' + product.name}"
+                    >
+                      Consultar
+                      <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="vf-empty" th:if="${products.items.isEmpty()}">
+            <i class="bi bi-boxes" aria-hidden="true"></i>
+            <h2>Nenhum produto neste filtro</h2>
+            <p>Cadastre produtos ou ajuste os filtros para acompanhar os saldos.</p>
+            <a th:if="${canWriteProducts}" class="btn btn-primary" th:href="@{/produtos/novo}">
+              Cadastrar produto
+            </a>
+          </div>
+        </section>
+        <nav class="vf-pagination" aria-label="Páginas do estoque" th:if="${products.pages() > 1}">
+          <a
+            th:if="${products.hasPrevious()}"
+            th:href="@{/estoque(q=${query},low=${low},page=${products.number - 1})}"
+          >
+            Anterior
+          </a>
+          <span th:text="${'Página ' + (products.number + 1) + ' de ' + products.pages()}"></span>
+          <a
+            th:if="${products.hasNext()}"
+            th:href="@{/estoque(q=${query},low=${low},page=${products.number + 1})}"
+          >
+            Próxima
+          </a>
+        </nav>
+      </main>
+      <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+  </body>
+</html>
