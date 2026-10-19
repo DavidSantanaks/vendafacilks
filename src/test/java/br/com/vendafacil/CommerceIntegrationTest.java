@@ -186,6 +186,15 @@ class CommerceIntegrationTest extends PostgresTestSupport {
     body.put(
         "payments",
         List.of(Map.of("method", "CASH", "amount", "20"), Map.of("method", "PIX", "amount", "20")));
+    send(operator, "/api/pdv/previsao", body)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items.length()").value(2))
+        .andExpect(
+            jsonPath("$.items[?(@.productId == '" + kg + "')].total")
+                .value(org.hamcrest.Matchers.contains(24.97)))
+        .andExpect(
+            jsonPath("$.items[?(@.productId == '" + unit + "')].total")
+                .value(org.hamcrest.Matchers.contains(10.0)));
     var id = resultId(send(operator, "/api/pdv/vendas", body));
     assertThat(resultId(send(operator, "/api/pdv/vendas", body))).isEqualTo(id);
     assertThat(quantity(kg)).isEqualByComparingTo("3.745");

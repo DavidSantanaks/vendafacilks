@@ -124,8 +124,8 @@ Após atualizar com `docker compose up -d --build`, a migration V4 é aplicada a
 
 1. Entre como administrador, selecione a filial e abra **Meu caixa**. Cadastre um caixa físico, por exemplo `Caixa 01`.
 2. O operador entra em sua própria conta, abre esse caixa com o fundo inicial e acessa **Frente de caixa**.
-3. Adicione produtos com preço ativo, informe quantidades/pesos e os pagamentos efetivamente recebidos no teste. Clique em **Calcular valores** para conferir.
-4. Se necessário, outra pessoa autorizada preenche a aprovação de desconto/estoque negativo. Confirme a venda e imprima o recibo de teste.
+3. Busque ou leia os produtos; a lista à esquerda mostra quantidades e totais atualizados automaticamente. Escolha a forma de pagamento no painel à direita e informe o valor recebido. Para pagamento misto, use **+** e selecione a próxima forma.
+4. Clique em **Finalizar venda** (`F9`). Quando necessário, a tela pede aprovação de desconto/estoque negativo. Conclua e imprima o recibo de teste. `F2` foca a busca e `F4` abre o desconto da venda.
 5. Ao encerrar, conte o dinheiro e declare a contagem em **Meu caixa**. Só depois o esperado/diferença ficam disponíveis. Justifique e obtenha aprovação quando exigida, então conclua o fechamento.
 
 Padrões da empresa: operador 0%, gerente 10%, administrador 20%; teto acumulado de 20%; fechamento cego ativo; toda sangria exige aprovação, com máximo de R$ 1.000,00 por operação; qualquer diferença exige aprovação. O administrador ajusta as políticas na página do caixa. Estes valores iniciais são decisões técnicas documentadas, a validar com a operação. Consulte [o roteiro completo de venda e caixa](docs/runbooks/sales-and-cash.md).

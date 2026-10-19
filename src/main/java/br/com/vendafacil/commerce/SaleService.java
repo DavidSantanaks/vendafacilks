@@ -88,7 +88,11 @@ public class SaleService {
       BigDecimal change,
       BigDecimal cashNet,
       boolean discountApprovalRequired,
-      boolean negativeStockApprovalRequired) {}
+      boolean negativeStockApprovalRequired,
+      List<QuoteItem> items) {}
+
+  public record QuoteItem(
+      UUID productId, BigDecimal subtotal, BigDecimal discount, BigDecimal total) {}
 
   private record Prepared(
       List<Item> requests,
@@ -164,7 +168,19 @@ public class SaleService {
     var s = cash.checkoutSession(input.sessionId(), false);
     CashService.open(s);
     var p = prepare(input, false);
-    return new Quote(p.totals(), p.change(), p.cashNet(), p.discountApproval(), p.negative());
+    var items = new ArrayList<QuoteItem>();
+    for (int i = 0; i < p.products().size(); i++) {
+      var line = p.totals().lines().get(i);
+      items.add(
+          new QuoteItem(p.products().get(i).id(), line.gross(), line.discount(), line.total()));
+    }
+    return new Quote(
+        p.totals(),
+        p.change(),
+        p.cashNet(),
+        p.discountApproval(),
+        p.negative(),
+        List.copyOf(items));
   }
 
   @Transactional

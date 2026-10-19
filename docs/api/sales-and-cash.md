@@ -41,7 +41,7 @@ Versão `0.3.0-SNAPSHOT`. Host da empresa, sessão autenticada, filial seleciona
 }
 ```
 
-IDs do exemplo são marcadores; use os retornados por cadastro/busca/abertura. `unitPrice` e `productVersion` precisam corresponder à busca atual; não alteram o preço do banco. `items` tem de 1 a 100 produtos distintos. UN exige inteiro; KG até três casas. Checkout exige pagamentos positivos e suficientes em até quatro métodos distintos: `CASH`, `PIX`, `DEBIT`, `CREDIT`. A prévia retorna `totals`, `change`, `cashNet`, `discountApprovalRequired` e `negativeStockApprovalRequired`; valores JSON são decimais numéricos apenas para exibição.
+IDs do exemplo são marcadores; use os retornados por cadastro/busca/abertura. `unitPrice` e `productVersion` precisam corresponder à busca atual; não alteram o preço do banco. `items` tem de 1 a 100 produtos distintos. UN exige inteiro; KG até três casas. Checkout exige pagamentos positivos e suficientes em até quatro métodos distintos: `CASH`, `PIX`, `DEBIT`, `CREDIT`. A prévia retorna `totals`, `change`, `cashNet`, `discountApprovalRequired`, `negativeStockApprovalRequired` e `items` com `productId`, `subtotal`, `discount`, `total` de cada produto, para associar os valores à linha correta. Valores JSON são decimais numéricos apenas para exibição; a interface atualiza a prévia automaticamente e o checkout mantém a validação final.
 
 Se necessário, inclua `discountApproval` e/ou `stockApproval`, cada um com `email`, `password`, `reason`. Movimentos e fechamento usam o mesmo objeto no campo `approval`. Nunca registrar payload completo com credenciais em logs, screenshots, analytics ou histórico de requisições. Os records de credenciais têm `toString` redigido e não são persistidos.
 

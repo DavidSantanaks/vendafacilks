@@ -13,13 +13,15 @@ Selecione a filial. O administrador abre **Meu caixa**, cadastra um nome para o 
 ## Rotina do operador
 
 1. Entre com sua conta e abra **Meu caixa**. Escolha o caixa físico e declare o fundo inicial da gaveta.
-2. Acesse **Frente de caixa**. A busca aceita nome, SKU e código de barras; um código de barras exato seguido de Enter adiciona 1 UN ou solicita o peso KG. O leitor deve funcionar como teclado. Não há leitura de etiqueta com peso embutido nem integração com balança.
-3. Ajuste quantidades: UN inteira; KG até três casas, por exemplo `0,350`. Remova itens pelo botão correspondente. O carrinho fica na memória da página e é descartado ao sair; venda concluída fica no banco.
-4. Informe descontos por item e/ou venda em `%` ou `R$`. O servidor confere a combinação e distribui o desconto global em centavos pelo maior resto, com desempate determinístico pela ordem dos produtos.
-5. Preencha dinheiro entregue e recebimentos já confirmados em Pix, débito ou crédito. Estes campos registram o teste; não cobram, transferem, autorizam cartão ou consultam banco.
-6. Clique em **Calcular valores**. A prévia do servidor mostra total, troco e necessidade de aprovação. O checkout repete todas as validações.
-7. Outra pessoa autorizada informa e-mail, senha e motivo nos campos de aprovação. A senha não é gravada nem reutilizada como token; os campos são limpos após a tentativa. A conta e a sessão do operador continuam as mesmas.
-8. Confirme o total/troco. O recibo apresenta **RECIBO NÃO FISCAL · DEMONSTRAÇÃO** e pode ser impresso pelo navegador. Layout pensado para impressão comum; impressora térmica física não foi homologada.
+2. Acesse **Frente de caixa**. A lista fica à esquerda e o resumo/pagamento à direita. Digite parte do nome/SKU para receber sugestões automaticamente, ou leia um código e pressione Enter. Leitura exata adiciona UN; KG abre uma janela para informar o peso. Leituras seguidas entram em fila. O leitor funciona como teclado, sem etiqueta com peso embutido ou integração com balança.
+3. Ajuste quantidades na própria linha, usando o campo ou **−/+**: UN inteira; KG até três casas, como `0,350`. O total por item e o total da venda são atualizados automaticamente. Remova pelo **×** ou use **Limpar venda** para descartar o rascunho. O carrinho fica na memória da página e é descartado ao sair.
+4. Use **Desconto** na linha para um item ou no resumo para a venda inteira, em `%` ou `R$`. O servidor confere a combinação e distribui o desconto global em centavos pelo maior resto. Cliente é opcional e fica recolhido em **Identificar cliente**.
+5. Escolha Dinheiro, Pix, Débito ou Crédito à direita. O valor exato é sugerido; ajuste para o efetivamente recebido. Para dividir, informe uma parte, clique em **+** e escolha a próxima forma. Cada pagamento adicionado pode ser removido. Confira o troco. São registros de teste, sem cobrança, transferência, autorização de cartão ou consulta ao banco.
+6. Clique em **Finalizar venda**. O checkout repete as validações de preços, descontos, estoque e pagamentos. Não há etapa manual de calcular valores.
+7. Quando exigida, uma janela pede a aprovação de outra pessoa autorizada na filial: e-mail, senha e motivo. Somente as aprovações necessárias aparecem. Cancelar essa janela preserva o carrinho e os pagamentos; uma senha incorreta mantém a janela aberta e limpa o campo de senha. A conta do operador continua a mesma.
+8. Após concluir, o recibo apresenta **RECIBO NÃO FISCAL · DEMONSTRAÇÃO** e pode ser impresso pelo navegador. Layout pensado para impressão comum; impressora térmica física não foi homologada.
+
+Atalhos: **F2** busca, **F4** desconto na venda, **F9** finalizar e **Esc** fechar janela/sugestões. No desktop, a lista rola internamente e o total/botão final continuam visíveis. No celular, a barra inferior leva ao pagamento e mantém o total acessível.
 
 Os preços vêm da filial ativa. Modificação de cadastro/preço depois da inclusão exige remover e buscar o produto novamente. Não existe edição de preço-base no caixa. Produto inativo ou sem preço ativo não pode ser vendido.
 

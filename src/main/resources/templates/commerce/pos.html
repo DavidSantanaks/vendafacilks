@@ -1,224 +1,431 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="~{fragments/layout :: head('Frente de caixa')}"></head>
-  <body>
+  <body class="vf-pos-page">
     <a th:replace="~{fragments/layout :: skip}"></a>
     <aside th:replace="~{fragments/layout :: sidebar}"></aside>
     <div class="vf-shell">
       <header th:replace="~{fragments/layout :: topbar('Frente de caixa')}"></header>
-      <main id="conteudo" class="vf-content">
+      <main id="conteudo" class="vf-content vf-pos-content">
         <div th:replace="~{fragments/layout :: alerts}"></div>
         <div id="commerce-error" class="alert alert-danger" role="alert" hidden></div>
-
-        <div class="vf-page-heading">
-          <div>
-            <span class="vf-eyebrow">VENDA COM TUDO À MÃO</span>
-            <h1>Frente de caixa</h1>
-            <p>
-              Busque um produto ou leia seu código de barras. Para KG, informe o peso manualmente.
-            </p>
+        <div class="vf-pos-heading">
+          <div class="vf-pos-heading-title">
+            <span class="vf-pos-symbol"><i class="bi bi-cart3" aria-hidden="true"></i></span>
+            <div>
+              <h1>Frente de caixa</h1>
+              <p>
+                <span th:text="${activeStore.name}"></span>
+                <span th:if="${cashSession != null}">
+                  ·
+                  <span th:text="${cashSession.registerName}"></span>
+                </span>
+              </p>
+            </div>
           </div>
-          <a class="btn btn-outline-primary" th:href="@{/caixa}">Meu caixa</a>
+          <div class="vf-pos-heading-actions">
+            <span class="vf-pos-demo">Demonstração</span>
+            <a class="btn btn-outline-primary btn-sm" th:href="@{/caixa}">
+              <i class="bi bi-cash-stack" aria-hidden="true"></i>
+              Meu caixa
+            </a>
+          </div>
         </div>
-        <div class="alert alert-warning">
-          <strong>Ambiente de demonstração.</strong>
-          Pagamentos são registrados manualmente, sem cobrança ou emissão fiscal. O recibo não tem
-          valor fiscal.
-        </div>
-        <div th:unless="${salesEnabled}" class="vf-card vf-commerce-card">
+        <section th:unless="${salesEnabled}" class="vf-card vf-commerce-card">
           <h2>PDV indisponível neste ambiente</h2>
           <p>A operação em produção depende da integração fiscal da próxima etapa.</p>
-        </div>
-        <div
+        </section>
+        <section
           th:if="${salesEnabled and (cashSession == null or cashSession.status != 'OPEN')}"
           class="vf-card vf-commerce-card"
         >
           <h2>Abra seu caixa para começar</h2>
           <p>É necessário um caixa aberto em seu nome nesta filial.</p>
-          <a class="btn btn-primary" th:href="@{/caixa}">Acessar meu caixa</a>
-        </div>
+          <a class="btn btn-primary" th:href="@{/caixa}">Abrir meu caixa</a>
+        </section>
         <div
           id="pos"
+          class="vf-pos-layout"
           th:if="${salesEnabled and cashSession != null and cashSession.status == 'OPEN'}"
           th:attr="data-session-id=${cashSession.id}"
         >
-          <div class="vf-pos-grid">
-            <section class="vf-card vf-commerce-card">
-              <h2>Adicionar produtos</h2>
+          <section class="vf-pos-sale" aria-label="Produtos e itens da venda">
+            <div class="vf-pos-search-area" id="pos-search-area">
               <form method="post" th:action="@{/pdv}" id="product-search" role="search">
-                <label for="pos-search">Nome, SKU ou código de barras</label>
-                <div class="vf-search-row">
+                <label for="pos-search">
+                  Adicionar produto
+                  <kbd>F2</kbd>
+                </label>
+                <div class="vf-pos-search-box">
+                  <i class="bi bi-upc-scan" aria-hidden="true"></i>
                   <input
-                    class="form-control"
                     id="pos-search"
+                    class="form-control"
+                    placeholder="Leia o código ou busque por nome ou SKU"
                     maxlength="100"
                     autocomplete="off"
+                    aria-controls="search-results"
+                    aria-expanded="false"
                     autofocus
                   />
-                  <button class="btn btn-primary">Buscar</button>
+                  <button class="btn btn-primary" aria-label="Buscar produto">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <span>Buscar</span>
+                  </button>
                 </div>
-                <p class="vf-muted">
-                  Um código de barras exato adiciona 1 UN. Para KG, confirme o peso.
-                </p>
               </form>
-              <div id="search-results" aria-live="polite"></div>
-              <hr />
-              <h2>Itens da venda</h2>
-              <p id="cart-empty" class="vf-muted">Seu carrinho está vazio.</p>
-              <div id="cart-items"></div>
-            </section>
-            <section class="vf-card vf-commerce-card">
-              <h2>Conferir e receber</h2>
-              <form method="post" th:action="@{/pdv}" id="checkout-form">
-                <label for="customer">Nome do cliente (opcional)</label>
-                <input class="form-control" id="customer" maxlength="120" autocomplete="off" />
-                <label for="sale-discount">Desconto na venda</label>
-                <div class="vf-discount-row">
-                  <select
-                    id="sale-discount-type"
-                    class="form-select"
-                    aria-label="Tipo de desconto na venda"
-                  >
-                    <option value="PERCENT">%</option>
-                    <option value="AMOUNT">R$</option>
-                  </select>
-                  <input class="form-control" id="sale-discount" value="0" inputmode="decimal" />
-                </div>
-                <p class="vf-muted">
-                  O limite considera o desconto do item junto com o desconto da venda: operador 0%,
-                  gerente 10%, administrador 20%.
-                </p>
-                <fieldset>
-                  <legend>Pagamentos recebidos (R$)</legend>
-                  <p class="vf-muted">
-                    Confirme o recebimento antes de registrar. Troco somente em dinheiro.
-                  </p>
-                  <label for="pay-cash">Dinheiro entregue pelo cliente</label>
-                  <input
-                    class="form-control"
-                    id="pay-cash"
-                    data-payment="CASH"
-                    inputmode="decimal"
-                  />
-                  <label for="pay-pix">Pix confirmado</label>
-                  <input class="form-control" id="pay-pix" data-payment="PIX" inputmode="decimal" />
-                  <label for="pay-debit">Cartão de débito confirmado</label>
-                  <input
-                    class="form-control"
-                    id="pay-debit"
-                    data-payment="DEBIT"
-                    inputmode="decimal"
-                  />
-                  <label for="pay-credit">Cartão de crédito confirmado</label>
-                  <input
-                    class="form-control"
-                    id="pay-credit"
-                    data-payment="CREDIT"
-                    inputmode="decimal"
-                  />
-                </fieldset>
-                <dl class="vf-money-summary" aria-live="polite">
-                  <div>
-                    <dt>Subtotal</dt>
-                    <dd id="pos-subtotal">—</dd>
-                  </div>
-                  <div>
-                    <dt>Desconto acumulado</dt>
-                    <dd id="pos-discount">—</dd>
-                  </div>
-                  <div class="vf-total">
-                    <dt>Total</dt>
-                    <dd id="pos-total">—</dd>
-                  </div>
-                  <div>
-                    <dt>Troco em dinheiro</dt>
-                    <dd id="pos-change">—</dd>
-                  </div>
-                </dl>
-                <button type="button" id="quote-button" class="btn btn-outline-primary">
-                  Calcular valores
+              <div
+                id="search-results"
+                class="vf-pos-search-results"
+                aria-label="Produtos encontrados"
+                hidden
+              ></div>
+              <span
+                id="search-status"
+                class="visually-hidden"
+                role="status"
+                aria-live="polite"
+              ></span>
+            </div>
+            <div class="vf-pos-items-heading">
+              <h2>
+                Itens da venda
+                <span id="cart-count">0</span>
+              </h2>
+              <button type="button" id="clear-sale" class="vf-pos-text-button" disabled>
+                <i class="bi bi-trash3" aria-hidden="true"></i>
+                Limpar venda
+              </button>
+            </div>
+            <div id="cart-empty" class="vf-pos-empty">
+              <span><i class="bi bi-basket2" aria-hidden="true"></i></span>
+              <h3>Vamos começar uma venda?</h3>
+              <p>Leia um código de barras ou busque o primeiro produto.</p>
+              <small>Para produtos em KG, informe o peso ao adicionar.</small>
+            </div>
+            <div id="cart-table-wrap" class="vf-pos-table-wrap" hidden>
+              <table class="vf-pos-table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Produto</th>
+                    <th scope="col" class="vf-pos-quantity-col">Qtd.</th>
+                    <th scope="col" class="vf-pos-unit-price">Unitário</th>
+                    <th scope="col">Total</th>
+                    <th scope="col"><span class="visually-hidden">Remover</span></th>
+                  </tr>
+                </thead>
+                <tbody id="cart-items"></tbody>
+              </table>
+            </div>
+            <div class="vf-pos-sale-footer">
+              <span>
+                <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                Preços da filial ativa
+              </span>
+              <span id="cart-update-status" role="status" aria-live="polite">
+                Aguardando produtos
+              </span>
+            </div>
+          </section>
+          <aside class="vf-pos-checkout" aria-label="Resumo e pagamento" id="payment-panel">
+            <div class="vf-pos-summary">
+              <div class="vf-pos-summary-heading">
+                <h2>Resumo da venda</h2>
+                <button
+                  type="button"
+                  class="vf-pos-text-button"
+                  id="sale-discount-button"
+                  aria-haspopup="dialog"
+                >
+                  <i class="bi bi-tag" aria-hidden="true"></i>
+                  Desconto
+                  <kbd>F4</kbd>
                 </button>
-                <div id="approval-notice" class="alert alert-info" hidden></div>
-                <div id="discount-approval">
-                  <details class="vf-approval">
-                    <summary>Aprovação de desconto</summary>
-                    <p>
-                      Outra pessoa autorizada nesta filial deve conferir a operação e informar suas
-                      credenciais. A sessão do operador continua a mesma.
-                    </p>
-                    <label for="discount-email">E-mail de quem aprova</label>
-                    <input
-                      class="form-control"
-                      id="discount-email"
-                      name="approvalEmail"
-                      type="email"
-                      maxlength="254"
-                      autocomplete="off"
-                    />
-                    <label for="discount-password">Senha de quem aprova</label>
-                    <input
-                      class="form-control"
-                      id="discount-password"
-                      name="approvalPassword"
-                      type="password"
-                      maxlength="64"
-                      autocomplete="new-password"
-                    />
-                    <label for="discount-reason">Motivo da aprovação</label>
-                    <input
-                      class="form-control"
-                      id="discount-reason"
-                      name="approvalReason"
-                      maxlength="240"
-                    />
-                  </details>
+              </div>
+              <div class="vf-pos-grand-total">
+                <span>Total a pagar</span>
+                <strong id="pos-total" data-pos-total aria-live="polite">R$ 0,00</strong>
+              </div>
+              <dl class="vf-pos-breakdown">
+                <div>
+                  <dt>Subtotal</dt>
+                  <dd id="pos-subtotal">R$ 0,00</dd>
                 </div>
-                <div id="stock-approval">
-                  <details class="vf-approval">
-                    <summary>Aprovação de estoque negativo</summary>
-                    <p>
-                      Outra pessoa autorizada nesta filial deve conferir a operação e informar suas
-                      credenciais. A sessão do operador continua a mesma.
-                    </p>
-                    <label for="stock-email">E-mail de quem aprova</label>
-                    <input
-                      class="form-control"
-                      id="stock-email"
-                      name="approvalEmail"
-                      type="email"
-                      maxlength="254"
-                      autocomplete="off"
-                    />
-                    <label for="stock-password">Senha de quem aprova</label>
-                    <input
-                      class="form-control"
-                      id="stock-password"
-                      name="approvalPassword"
-                      type="password"
-                      maxlength="64"
-                      autocomplete="new-password"
-                    />
-                    <label for="stock-reason">Motivo da aprovação</label>
-                    <input
-                      class="form-control"
-                      id="stock-reason"
-                      name="approvalReason"
-                      maxlength="240"
-                    />
-                  </details>
+                <div>
+                  <dt>
+                    Descontos
+                    <span id="global-discount-label"></span>
+                  </dt>
+                  <dd id="pos-discount">R$ 0,00</dd>
                 </div>
-                <button class="btn btn-primary vf-checkout-button">
-                  Confirmar venda de demonstração
+              </dl>
+              <details class="vf-pos-customer">
+                <summary>
+                  <i class="bi bi-person-plus" aria-hidden="true"></i>
+                  Identificar cliente
+                  <span>opcional</span>
+                </summary>
+                <label for="customer" class="visually-hidden">Nome do cliente</label>
+                <input
+                  id="customer"
+                  class="form-control"
+                  maxlength="120"
+                  placeholder="Nome do cliente"
+                  autocomplete="off"
+                />
+              </details>
+            </div>
+            <form method="post" th:action="@{/pdv}" id="checkout-form" class="vf-pos-payment">
+              <fieldset>
+                <legend>Forma de pagamento</legend>
+                <div class="vf-pos-methods" role="group" aria-label="Forma de pagamento">
+                  <button type="button" data-method="CASH" aria-pressed="true">
+                    <i class="bi bi-cash" aria-hidden="true"></i>
+                    Dinheiro
+                  </button>
+                  <button type="button" data-method="PIX" aria-pressed="false">
+                    <i class="bi bi-qr-code" aria-hidden="true"></i>
+                    Pix
+                  </button>
+                  <button type="button" data-method="DEBIT" aria-pressed="false">
+                    <i class="bi bi-credit-card" aria-hidden="true"></i>
+                    Débito
+                  </button>
+                  <button type="button" data-method="CREDIT" aria-pressed="false">
+                    <i class="bi bi-credit-card-2-front" aria-hidden="true"></i>
+                    Crédito
+                  </button>
+                </div>
+              </fieldset>
+              <div class="vf-pos-amount-label">
+                <label for="payment-amount" id="payment-amount-label">Dinheiro recebido</label>
+                <button id="exact-payment" type="button" class="vf-pos-text-button">
+                  Valor exato
                 </button>
-                <p class="vf-muted">
-                  Os valores e as permissões são conferidos novamente ao concluir.
-                </p>
-              </form>
-            </section>
+              </div>
+              <div class="vf-pos-amount">
+                <span>R$</span>
+                <input
+                  id="payment-amount"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  placeholder="0,00"
+                  aria-describedby="payment-hint"
+                />
+                <button
+                  id="add-payment"
+                  type="button"
+                  aria-label="Adicionar este pagamento"
+                  title="Adicionar para dividir entre formas"
+                >
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p id="payment-hint" class="vf-pos-payment-hint">
+                Use + para dividir entre formas de pagamento.
+              </p>
+              <ul
+                id="payment-list"
+                class="vf-pos-payment-list"
+                aria-label="Pagamentos adicionados"
+                hidden
+              ></ul>
+              <dl class="vf-pos-settlement">
+                <div>
+                  <dt>Total recebido</dt>
+                  <dd id="pos-paid">R$ 0,00</dd>
+                </div>
+                <div id="pos-remaining-row" hidden>
+                  <dt>Falta receber</dt>
+                  <dd id="pos-remaining">R$ 0,00</dd>
+                </div>
+                <div class="vf-pos-change">
+                  <dt>Troco em dinheiro</dt>
+                  <dd id="pos-change">R$ 0,00</dd>
+                </div>
+              </dl>
+              <p id="pos-feedback" class="vf-pos-feedback" role="alert" hidden></p>
+              <div id="approval-notice" class="vf-pos-approval-notice" role="status" hidden></div>
+              <div class="vf-pos-submit-area">
+                <button id="finish-sale" class="btn btn-primary vf-pos-finish" disabled>
+                  <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                  <span>Finalizar venda</span>
+                  <kbd>F9</kbd>
+                </button>
+                <p>Registro de teste, sem cobrança ou emissão fiscal.</p>
+              </div>
+            </form>
+          </aside>
+          <div class="vf-pos-mobile-pay">
+            <strong data-pos-total>R$ 0,00</strong>
+            <button type="button" class="btn btn-primary" id="mobile-payment-button">
+              Pagamento
+              <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
           </div>
+          <dialog id="quantity-dialog" class="vf-pos-dialog" aria-labelledby="quantity-title">
+            <form method="post" th:action="@{/pdv}" id="quantity-form">
+              <div class="vf-pos-dialog-heading">
+                <div>
+                  <span class="vf-eyebrow">PRODUTO POR PESO</span>
+                  <h2 id="quantity-title">Informar peso</h2>
+                </div>
+                <button
+                  type="button"
+                  class="vf-pos-dialog-close"
+                  data-close-dialog
+                  aria-label="Fechar"
+                >
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p id="quantity-product"></p>
+              <label for="weight-input">Peso em KG</label>
+              <div class="vf-pos-weight-input">
+                <input
+                  id="weight-input"
+                  class="form-control"
+                  inputmode="decimal"
+                  placeholder="0,350"
+                  autocomplete="off"
+                  required
+                />
+                <span>KG</span>
+              </div>
+              <small>Até 3 casas decimais. Exemplo: 350 g = 0,350 KG.</small>
+              <p id="weight-error" class="vf-pos-feedback" role="alert" hidden></p>
+              <button class="btn btn-primary vf-pos-dialog-submit">Adicionar à venda</button>
+            </form>
+          </dialog>
+          <dialog id="discount-dialog" class="vf-pos-dialog" aria-labelledby="discount-title">
+            <form method="post" th:action="@{/pdv}" id="discount-form">
+              <div class="vf-pos-dialog-heading">
+                <div>
+                  <span class="vf-eyebrow">DESCONTO</span>
+                  <h2 id="discount-title">Desconto na venda</h2>
+                </div>
+                <button
+                  type="button"
+                  class="vf-pos-dialog-close"
+                  data-close-dialog
+                  aria-label="Fechar"
+                >
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p id="discount-product">Aplicado sobre os itens desta venda.</p>
+              <label for="discount-value">Valor do desconto</label>
+              <div class="vf-pos-discount-input">
+                <select id="discount-type" class="form-select" aria-label="Tipo de desconto">
+                  <option value="PERCENT">Percentual (%)</option>
+                  <option value="AMOUNT">Valor (R$)</option>
+                </select>
+                <input
+                  id="discount-value"
+                  class="form-control"
+                  inputmode="decimal"
+                  value="0"
+                  required
+                />
+              </div>
+              <p class="vf-pos-dialog-help">
+                Os descontos do item e da venda são somados. A aprovação será solicitada ao
+                finalizar, quando necessária.
+              </p>
+              <p id="discount-error" class="vf-pos-feedback" role="alert" hidden></p>
+              <button class="btn btn-primary vf-pos-dialog-submit">Aplicar desconto</button>
+            </form>
+          </dialog>
+          <dialog
+            id="approval-dialog"
+            class="vf-pos-dialog vf-pos-approval-dialog"
+            aria-labelledby="approval-title"
+          >
+            <form method="post" th:action="@{/pdv}" id="approval-form">
+              <div class="vf-pos-dialog-heading">
+                <div>
+                  <span class="vf-eyebrow">AUTORIZAÇÃO</span>
+                  <h2 id="approval-title">Aprovar e concluir venda</h2>
+                </div>
+                <button
+                  type="button"
+                  class="vf-pos-dialog-close"
+                  data-close-dialog
+                  aria-label="Fechar"
+                >
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+              </div>
+              <p>Outra pessoa autorizada nesta filial deve conferir e aprovar a operação.</p>
+              <div class="vf-pos-approval-total">
+                <span>Total da venda</span>
+                <strong id="approval-total"></strong>
+              </div>
+              <section id="discount-approval" hidden>
+                <h3>Aprovação do desconto</h3>
+                <label for="discount-email">E-mail de quem aprova</label>
+                <input
+                  id="discount-email"
+                  name="approvalEmail"
+                  class="form-control"
+                  type="email"
+                  maxlength="254"
+                  autocomplete="off"
+                />
+                <label for="discount-password">Senha</label>
+                <input
+                  id="discount-password"
+                  name="approvalPassword"
+                  class="form-control"
+                  type="password"
+                  maxlength="64"
+                  autocomplete="new-password"
+                />
+                <label for="discount-reason">Motivo da aprovação</label>
+                <input
+                  id="discount-reason"
+                  name="approvalReason"
+                  class="form-control"
+                  maxlength="240"
+                />
+              </section>
+              <section id="stock-approval" hidden>
+                <h3>Aprovação do estoque negativo</h3>
+                <label for="stock-email">E-mail de quem aprova</label>
+                <input
+                  id="stock-email"
+                  name="approvalEmail"
+                  class="form-control"
+                  type="email"
+                  maxlength="254"
+                  autocomplete="off"
+                />
+                <label for="stock-password">Senha</label>
+                <input
+                  id="stock-password"
+                  name="approvalPassword"
+                  class="form-control"
+                  type="password"
+                  maxlength="64"
+                  autocomplete="new-password"
+                />
+                <label for="stock-reason">Motivo da aprovação</label>
+                <input
+                  id="stock-reason"
+                  name="approvalReason"
+                  class="form-control"
+                  maxlength="240"
+                />
+              </section>
+              <p id="approval-error" class="vf-pos-feedback" role="alert" hidden></p>
+              <button class="btn btn-primary vf-pos-dialog-submit" id="approve-sale">
+                Aprovar e concluir venda
+              </button>
+            </form>
+          </dialog>
         </div>
       </main>
-      <footer th:replace="~{fragments/layout :: footer}"></footer>
     </div>
     <script type="module" th:src="@{/js/commerce/pos.js}"></script>
   </body>

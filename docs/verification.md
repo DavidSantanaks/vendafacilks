@@ -1,5 +1,18 @@
 # Verificação das entregas
 
+## Revisão da interface do PDV
+
+Data: 19/10/2026. Lista compacta de itens à esquerda, resumo/pagamento à direita, total automático e aprovação somente ao finalizar. Tema roxo/off-white preservado.
+
+- Maven `spotless:apply verify`: **96 testes aprovados**, sem falhas/erros/ignorados. O cenário comercial confere também a associação do total calculado ao UUID de cada produto.
+- Chrome real/Docker isolado: busca automática, leitor como teclado, duas leituras rápidas sem perda de quantidade, peso KG em janela, rejeição de peso zero, edição de quantidade e valores por item.
+- Desktop 1440 × 900 e notebook 1280 × 800: lista com oito produtos rola internamente; botão final permanece no viewport. Mobile 390 × 844: lista adaptada e barra com total/acesso ao pagamento. Sem overflow da página ou IDs duplicados.
+- Atalhos F2/F4 e Escape conferidos; desconto por item e por venda, pagamento misto, bloqueio de excesso digital e troco em dinheiro conferidos.
+- Venda com subtotal R$ 33,87, desconto de 2% no café e 5% global: total R$ 31,80; Pix R$ 20,00 + dinheiro R$ 20,00; troco R$ 8,20. Aprovação exigida apenas no encerramento; cancelar preserva a venda; senha incorreta mantém o erro visível e limpa a senha; correção conclui a venda.
+- Reenvio da mesma venda retorna o mesmo UUID; fundo R$ 50,00 fecha com R$ 61,80. Venda posterior integralmente em Pix concluída pelo botão final; erro transitório simulado permaneceu visível e permitiu repetição, com caixa encerrado em zero.
+- Recuperação da busca: falha transitória foi exibida; nova consulta válida recuperou a finalização sem modificar os itens. Desconto global identificado separadamente dos descontos por item.
+- ESLint/Prettier e inspeção das capturas desktop/mobile aprovados. Sem erros JavaScript/CSP. Capturas e roteiros do ensaio ficam em `.tools`.
+
 ## Etapa 3 — versão 0.3.0
 
 Data: 19/10/2026. Ambiente: Windows, Temurin 25.0.4.1, Maven 3.9.11, Spring Boot 4.0.8, Docker Desktop, PostgreSQL 17.11 e Chrome headless instalado.
