@@ -24,6 +24,12 @@
             </div>
           </div>
           <div class="vf-pos-heading-actions">
+            <th:block th:if="${cashSession != null}">
+              <span th:replace="~{fragments/status :: cash(${cashSession.status})}"></span>
+            </th:block>
+            <th:block th:if="${cashSession == null}">
+              <span th:replace="~{fragments/status :: badge('Sem caixa aberto', 'neutral')}"></span>
+            </th:block>
             <span class="vf-pos-demo">Demonstração</span>
             <a class="btn btn-outline-primary btn-sm" th:href="@{/caixa}">
               <i class="bi bi-cash-stack" aria-hidden="true"></i>
@@ -39,9 +45,22 @@
           th:if="${salesEnabled and (cashSession == null or cashSession.status != 'OPEN')}"
           class="vf-card vf-commerce-card"
         >
-          <h2>Abra seu caixa para começar</h2>
-          <p>É necessário um caixa aberto em seu nome nesta filial.</p>
-          <a class="btn btn-primary" th:href="@{/caixa}">Abrir meu caixa</a>
+          <h2
+            th:text="${cashSession == null ? 'Abra seu caixa para começar' : 'Seu caixa está em fechamento'}"
+          ></h2>
+          <p
+            th:text="${cashSession == null ? 'É necessário um caixa aberto em seu nome nesta filial.' : 'A contagem já foi declarada. Conclua o fechamento antes de abrir uma nova sessão e voltar a vender.'}"
+          ></p>
+          <a th:if="${cashSession == null}" class="btn btn-primary" th:href="@{/caixa}">
+            Abrir meu caixa
+          </a>
+          <a
+            th:if="${cashSession != null}"
+            class="btn btn-primary"
+            th:href="@{/caixa/{id}(id=${cashSession.id})}"
+          >
+            Concluir fechamento
+          </a>
         </section>
         <div
           id="pos"

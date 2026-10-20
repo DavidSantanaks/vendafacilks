@@ -1,5 +1,19 @@
 # Verificação das entregas
 
+## Etiquetas de status
+
+Data: 19/10/2026. Etiquetas com borda arredondada, ponto, cor e descrição aplicadas ao caixa, PDV, recibo, produtos, estoque, usuários, empresas, filiais e importações. Tema roxo/off-white preservado.
+
+- Maven `spotless:apply verify`: **97 testes aprovados**, sem falhas, erros ou ignorados. Regressão adicionada para renderizar `/caixa` e `/pdv` sem sessão aberta, cobrindo o erro de avaliação de fragmento com sessão nula encontrado no navegador.
+- Chrome real/Docker isolado: **Caixa aberto** verde, **Contagem declarada** amarela e **Caixa fechado** cinza conferidos nas sessões e no PDV. Sem sessão, aparece **Sem caixa aberto**; após declarar a contagem, o PDV orienta **Concluir fechamento** e leva à sessão correta.
+- Cadastro real de produto ativo/inativo, consulta de estoque zero, bloqueio de acesso de um usuário, filiais e portais administrativos conferidos. Estoque zero aparece como **Sem estoque**, em vermelho, sem indicação de disponível. O checkbox **Produto ativo** recebeu ID explícito para corresponder ao seu rótulo.
+- Importação CSV válida: **Aguardando confirmação** amarela, linha **Validado** verde e confirmação **Concluída** verde. Arquivo inválido: **Com erros** vermelha, também na lista de importações.
+- Estilos calculados conferidos: borda de 1 px, raio de 999 px, ponto na cor do texto e contraste texto/fundo de pelo menos **4,5:1** nos quatro tons.
+- Desktop 1440 × 1000 e mobile 390 × 844: sem expansão horizontal da página, com rolagem restrita às tabelas. Capturas de caixa, PDV, catálogo, estoque, usuários e importações inspecionadas; sem erros JavaScript/CSP no ensaio. Sessões fictícias abertas pelo roteiro encerradas ao final.
+- ESLint, Prettier e oito testes do validador de commits aprovados. Imagem Docker reconstruída e JAR final reempacotado com os templates conferidos. Logs, capturas e dados de teste permanecem fora do Git.
+
+Esta conferência usa o ambiente local de demonstração. Não inclui acesso por outro dispositivo da rede, pagamentos/emissão fiscal reais ou homologação em produção.
+
 ## Revisão da interface do PDV
 
 Data: 19/10/2026. Lista compacta de itens à esquerda, resumo/pagamento à direita, total automático e aprovação somente ao finalizar. Tema roxo/off-white preservado.

@@ -189,12 +189,8 @@
                 </div>
                 <div class="vf-company-actions">
                   <span
-                    class="vf-badge"
-                    th:classappend="${!company.active ? 'vf-badge-warning' : ''}"
-                    th:text="${company.active ? 'Ativa' : 'Suspensa'}"
-                  >
-                    Ativa
-                  </span>
+                    th:replace="~{fragments/status :: badge(${company.active ? 'Ativa' : 'Suspensa'}, ${company.active ? 'success' : 'danger'})}"
+                  ></span>
                   <form
                     th:action="@{/admin/empresas/{id}/status(id=${company.id})}"
                     method="post"

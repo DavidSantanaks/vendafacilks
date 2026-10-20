@@ -136,8 +136,7 @@
                   ></td>
                   <td>
                     <span
-                      class="vf-role-tag"
-                      th:text="${product.active ? 'Ativo' : 'Inativo'}"
+                      th:replace="~{fragments/status :: badge(${product.active ? 'Ativo' : 'Inativo'}, ${product.active ? 'success' : 'neutral'})}"
                     ></span>
                   </td>
                   <td>

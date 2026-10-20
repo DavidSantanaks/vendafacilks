@@ -121,8 +121,12 @@
                   <td th:text="${job.rowCount}"></td>
                   <td>
                     <span
-                      class="vf-role-tag"
-                      th:text="${job.status == 'COMPLETED' ? 'Concluída' : (job.status == 'REJECTED' ? 'Com erros' : 'Aguardando confirmação')}"
+                      th:if="${job.status == 'PREVIEW' and !job.canConfirm()}"
+                      th:insert="~{fragments/status :: badge('Prévia expirada', 'neutral')}"
+                    ></span>
+                    <span
+                      th:unless="${job.status == 'PREVIEW' and !job.canConfirm()}"
+                      th:insert="~{fragments/status :: importStatus(${job.status})}"
                     ></span>
                   </td>
                   <td><a th:href="@{/produtos/importacoes/{id}(id=${job.id})}">Ver prévia</a></td>

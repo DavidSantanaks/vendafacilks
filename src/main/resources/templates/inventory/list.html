@@ -79,17 +79,25 @@
                     th:text="${product.minimum == null ? 'Não definido' : #numbers.formatDecimal(product.minimum, 1, 'POINT', product.unit == 'KG' ? 3 : 0, 'COMMA')}"
                   ></td>
                   <td>
-                    <span th:if="${!product.active}" class="vf-role-tag">Produto inativo</span>
                     <span
-                      th:if="${product.minimum != null and product.quantity.compareTo(product.minimum) <= 0}"
-                      class="vf-stock-alert"
+                      th:if="${!product.active}"
+                      th:insert="~{fragments/status :: badge('Produto inativo', 'neutral')}"
+                    ></span>
+                    <span
+                      th:if="${product.quantity.signum() <= 0}"
+                      class="vf-status-badge vf-status-danger"
+                      th:text="${product.quantity.signum() < 0 ? 'Estoque negativo' : 'Sem estoque'}"
+                    ></span>
+                    <span
+                      th:if="${product.quantity.signum() > 0 and product.minimum != null and product.quantity.compareTo(product.minimum) <= 0}"
+                      class="vf-status-badge vf-status-warning"
                     >
                       <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
                       Repor estoque
                     </span>
                     <span
-                      th:if="${product.active and (product.minimum == null or product.quantity.compareTo(product.minimum) > 0)}"
-                      class="vf-muted"
+                      th:if="${product.active and product.quantity.signum() > 0 and (product.minimum == null or product.quantity.compareTo(product.minimum) > 0)}"
+                      class="vf-status-badge vf-status-success"
                     >
                       Disponível
                     </span>

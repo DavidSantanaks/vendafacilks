@@ -100,7 +100,12 @@
               <dd th:text="${'R$ ' + #numbers.formatDecimal(sale.change,1,'POINT',2,'COMMA')}"></dd>
             </div>
           </dl>
-          <p>Venda comercial concluída · Documento fiscal não emitido.</p>
+          <div class="vf-status-summary">
+            <span th:replace="~{fragments/status :: badge('Venda concluída', 'success')}"></span>
+            <span
+              th:replace="~{fragments/status :: badge('Documento fiscal não emitido', 'warning')}"
+            ></span>
+          </div>
         </article>
       </main>
       <footer th:replace="~{fragments/layout :: footer}"></footer>

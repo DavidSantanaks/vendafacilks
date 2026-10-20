@@ -69,7 +69,9 @@
             <article class="vf-card vf-edit-store" th:each="store : ${stores}">
               <div class="vf-section-heading">
                 <h3 th:text="${store.name}">Filial</h3>
-                <span class="vf-badge" th:text="${store.active ? 'Ativa' : 'Inativa'}">Ativa</span>
+                <span
+                  th:replace="~{fragments/status :: badge(${store.active ? 'Ativa' : 'Inativa'}, ${store.active ? 'success' : 'neutral'})}"
+                ></span>
               </div>
               <form
                 th:action="@{/configuracoes/filiais/{id}(id=${store.id})}"

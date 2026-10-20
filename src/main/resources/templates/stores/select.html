@@ -51,10 +51,7 @@
           >
             <div class="vf-store-card-top">
               <span class="vf-store-symbol"><i class="bi bi-shop" aria-hidden="true"></i></span>
-              <span class="vf-badge">
-                <span class="vf-online-dot"></span>
-                Ativa
-              </span>
+              <span th:replace="~{fragments/status :: badge('Ativa', 'success')}"></span>
             </div>
             <h2 th:text="${store.name}">Matriz</h2>
             <p>

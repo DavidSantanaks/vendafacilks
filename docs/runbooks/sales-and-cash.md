@@ -47,6 +47,15 @@ Quantidades são `NUMERIC(19,3)` e dinheiro `NUMERIC(19,2)`/BigDecimal, arredond
 
 ## Movimentos e fechamento
 
+As etiquetas arredondadas mostram o estado do caixa também no cabeçalho da frente de caixa:
+
+- **Verde — Caixa aberto:** permite vendas e movimentos autorizados.
+- **Amarelo — Contagem declarada:** novas operações estão bloqueadas; use **Concluir fechamento** para conferir e encerrar.
+- **Cinza — Caixa fechado:** sessão encerrada, disponível para consulta.
+- **Cinza — Sem caixa aberto:** o operador precisa abrir uma sessão para vender.
+
+O texto acompanha a cor para identificar o estado sem depender apenas dela. Nos demais cadastros, verde indica ativo/concluído, amarelo indica pendência, vermelho indica bloqueio/erro ou falta de estoque, e cinza indica inativo/encerrado.
+
 Somente o operador responsável movimenta a sessão. Administrador/gerente com relatório pode consultá-la, mas não assume a sessão de outra pessoa. Há no máximo uma sessão `OPEN`/`COUNTED` por caixa e uma por operador na filial.
 
 Suprimento registra entrada física com motivo e `CASH_REINFORCE`. Sangria registra saída física, limita o valor por operação e exige aprovação por padrão. Operador básico só abre, vende e fecha; para movimentos precisa receber um perfil com a permissão correspondente. A saída nunca pode superar o dinheiro disponível. Não use sangria para representar reembolso.

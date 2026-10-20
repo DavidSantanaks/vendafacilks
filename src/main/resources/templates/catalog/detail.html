@@ -56,7 +56,11 @@
               </div>
               <div>
                 <dt>Situação</dt>
-                <dd th:text="${product.active ? 'Ativo' : 'Inativo'}"></dd>
+                <dd>
+                  <span
+                    th:replace="~{fragments/status :: badge(${product.active ? 'Ativo' : 'Inativo'}, ${product.active ? 'success' : 'neutral'})}"
+                  ></span>
+                </dd>
               </div>
               <div>
                 <dt>Código de barras</dt>

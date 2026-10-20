@@ -175,6 +175,18 @@ class CommerceIntegrationTest extends PostgresTestSupport {
   }
 
   @Test
+  void cashAndPosRenderWithoutAnOpenSession() throws Exception {
+    var admin = login("ana@boa-praca.example");
+    mvc.perform(get("/caixa").header("Host", HOST).session(admin))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Sem caixa aberto")));
+    mvc.perform(get("/pdv").header("Host", HOST).session(admin))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Sem caixa aberto")))
+        .andExpect(content().string(containsString("Abrir meu caixa")));
+  }
+
+  @Test
   void fullCycleSplitsPaymentsRoundsKgSnapshotsAndReplaysExactlyOnce() throws Exception {
     var admin = login("ana@boa-praca.example");
     var operator = login("caixa@boa-praca.example");

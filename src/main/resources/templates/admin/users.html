@@ -67,12 +67,8 @@
                 <p th:text="${person.email}">E-mail</p>
               </div>
               <span
-                class="vf-badge"
-                th:classappend="${!person.active ? 'vf-badge-warning' : ''}"
-                th:text="${person.active ? 'Ativo' : 'Bloqueado'}"
-              >
-                Ativo
-              </span>
+                th:replace="~{fragments/status :: badge(${person.active ? 'Ativo' : 'Bloqueado'}, ${person.active ? 'success' : 'danger'})}"
+              ></span>
             </div>
             <div class="vf-user-company-list">
               <span class="vf-role-tag" th:if="${person.platformAdmin}">

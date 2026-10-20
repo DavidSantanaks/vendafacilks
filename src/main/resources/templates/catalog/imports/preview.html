@@ -27,6 +27,16 @@
           </a>
         </div>
         <section class="vf-card vf-form-card mb-4">
+          <div class="vf-status-summary">
+            <span
+              th:if="${preview.job.status == 'PREVIEW' and !preview.job.canConfirm()}"
+              th:insert="~{fragments/status :: badge('Prévia expirada', 'neutral')}"
+            ></span>
+            <span
+              th:unless="${preview.job.status == 'PREVIEW' and !preview.job.canConfirm()}"
+              th:insert="~{fragments/status :: importStatus(${preview.job.status})}"
+            ></span>
+          </div>
           <div class="vf-import-summary">
             <div>
               <strong th:text="${preview.job.rowCount}"></strong>
@@ -120,7 +130,10 @@
                     ></small>
                   </td>
                   <td>
-                    <span th:if="${row.errors.isEmpty()}" class="vf-role-tag">Validado</span>
+                    <span
+                      th:if="${row.errors.isEmpty()}"
+                      th:insert="~{fragments/status :: badge('Validado', 'success')}"
+                    ></span>
                     <ul th:unless="${row.errors.isEmpty()}" class="vf-import-errors">
                       <li th:each="error : ${row.errors}" th:text="${error}"></li>
                     </ul>

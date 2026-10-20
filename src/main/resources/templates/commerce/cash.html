@@ -24,6 +24,16 @@
         <div class="vf-commerce-columns">
           <section class="vf-card vf-commerce-card" th:if="${cashDetail == null}">
             <h2>Abrir uma sessão</h2>
+            <div class="vf-status-summary">
+              <th:block th:if="${ownSession != null}">
+                <span th:replace="~{fragments/status :: cash(${ownSession.status})}"></span>
+              </th:block>
+              <th:block th:if="${ownSession == null}">
+                <span
+                  th:replace="~{fragments/status :: badge('Sem caixa aberto', 'neutral')}"
+                ></span>
+              </th:block>
+            </div>
             <p th:if="${ownSession != null}">
               Você já tem uma sessão em andamento.
               <a th:href="@{/caixa/{id}(id=${ownSession.id})}">Acessar meu caixa</a>
@@ -87,13 +97,10 @@
           >
             <a th:href="@{/caixa}">Todos os caixas</a>
             <h2 th:text="${cashDetail.session.registerName}"></h2>
-            <p>
+            <div class="vf-status-summary">
               <strong th:text="${cashDetail.session.operator}"></strong>
-              ·
-              <span
-                th:text="${cashDetail.session.status == 'OPEN' ? 'Aberto' : (cashDetail.session.status == 'COUNTED' ? 'Contagem declarada' : 'Fechado')}"
-              ></span>
-            </p>
+              <span th:replace="~{fragments/status :: cash(${cashDetail.session.status})}"></span>
+            </div>
             <div th:if="${cashDetail.expected == null}" class="alert alert-info">
               Fechamento cego ativo. Conte o dinheiro da gaveta antes de consultar a diferença. A
               contagem declarada não pode ser alterada.
@@ -264,9 +271,7 @@
               <a th:each="cashRow : ${sessions}" th:href="@{/caixa/{id}(id=${cashRow.id})}">
                 <strong th:text="${cashRow.registerName}"></strong>
                 <span th:text="${cashRow.operator}"></span>
-                <small
-                  th:text="${cashRow.status == 'OPEN' ? 'Aberto' : (cashRow.status == 'COUNTED' ? 'Contagem declarada' : 'Fechado')}"
-                ></small>
+                <span th:replace="~{fragments/status :: cash(${cashRow.status})}"></span>
               </a>
             </div>
             <p th:if="${sessions.isEmpty()}">Nenhuma sessão registrada.</p>

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <span
+      th:fragment="badge(label, tone)"
+      class="vf-status-badge"
+      th:classappend="${'vf-status-' + tone}"
+      th:text="${label}"
+    ></span>
+    <span
+      th:fragment="cash(value)"
+      class="vf-status-badge"
+      th:classappend="${value == 'OPEN' ? 'vf-status-success' : (value == 'COUNTED' ? 'vf-status-warning' : 'vf-status-neutral')}"
+      th:attr="data-cash-status=${value}"
+      th:text="${value == 'OPEN' ? 'Caixa aberto' : (value == 'COUNTED' ? 'Contagem declarada' : (value == 'CLOSED' ? 'Caixa fechado' : 'Status indisponível'))}"
+    ></span>
+    <span
+      th:fragment="importStatus(value)"
+      class="vf-status-badge"
+      th:classappend="${value == 'COMPLETED' ? 'vf-status-success' : (value == 'REJECTED' ? 'vf-status-danger' : (value == 'PREVIEW' ? 'vf-status-warning' : 'vf-status-neutral'))}"
+      th:text="${value == 'COMPLETED' ? 'Concluída' : (value == 'REJECTED' ? 'Com erros' : (value == 'PREVIEW' ? 'Aguardando confirmação' : 'Status indisponível'))}"
+    ></span>
+  </body>
+</html>
